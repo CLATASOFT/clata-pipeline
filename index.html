@@ -104,7 +104,7 @@ th.sort-desc::after{content:' ▼';font-size:9px}
 #import-modal input[type=file]{font-size:11px}
 #import-modal .hint{font-size:10px;color:#aaa;line-height:1.5}
 
-/* MOBILE - full responsive overhaul */
+/* MOBILE - responsive */
 @media(max-width:700px){
   /* Topbar compact */
   #topbar h1{font-size:13px}
@@ -112,52 +112,43 @@ th.sort-desc::after{content:' ▼';font-size:9px}
   #sync-label{display:none}
   #btn-logout{font-size:10px;padding:2px 7px}
 
-  /* Tabs larger touch targets */
-  #tab-nav button{font-size:13px;padding:10px 14px}
+  /* Tabs */
+  #tab-nav button{font-size:12px;padding:9px 12px}
 
-  /* Toolbar stacks compactly */
+  /* Toolbar */
   #toolbar{padding:6px 8px;gap:5px}
   #toolbar input{width:100%;font-size:13px;padding:7px 10px}
   #toolbar label{font-size:11px}
-  #toolbar select{font-size:12px;padding:6px 6px;max-width:130px}
+  #toolbar select{font-size:12px;padding:6px 6px}
   #toolbar .sep{display:none}
 
-  /* Stats bar smaller */
+  /* Stats */
   #stats-bar{padding:5px 8px;gap:5px}
   .sc{min-width:55px;padding:4px 6px}
   .sc .n{font-size:14px}
   .sc .l{font-size:8px}
 
-  /* MOBILE TABLE → card layout */
-  #table-wrap{flex:1;overflow-y:auto;overflow-x:hidden}
-  table{min-width:unset;width:100%}
-  table thead{display:none}
-  table tbody tr.proj-row{display:block;background:#fff;margin:6px 8px;border-radius:10px;border:1px solid #e5e5e5;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
-  table tbody tr.proj-row td{display:inline-block;border:none;padding:0;vertical-align:middle;background:transparent}
-  table tbody tr.task-row{display:block;background:#f9f9f9;margin:0 8px 2px;border-radius:0 0 8px 8px;padding:8px 12px;border:1px solid #eee;border-top:none}
-  table tbody tr.task-row td{display:inline-block;border:none;padding:2px 3px;background:transparent;vertical-align:middle}
+  /* Table: horizontal scroll, no card layout */
+  #table-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+  table{min-width:600px;width:max-content}
+  th{font-size:10px;padding:5px 6px}
+  .proj-row td{padding:5px 6px;font-size:11px}
+  .task-row td{padding:4px 6px;font-size:11px}
+  .pname{font-size:11px}
+  .sol{font-size:10px}
+  .ph{font-size:10px}
+  .badge{font-size:10px;padding:1px 6px}
+  .isel{font-size:10px;max-width:100px}
 
-  /* Card header row */
-  .proj-row .exp{font-size:14px;margin-right:4px;vertical-align:middle}
-  .proj-row .pname{font-size:13px;font-weight:700;display:block;width:100%;margin-bottom:4px}
-  .proj-row .sol{font-size:11px;padding:2px 8px}
-  .proj-row .ph{font-size:11px;padding:2px 8px}
-  .proj-row .amt{font-size:11px}
-  .proj-row .desc-cell{font-size:11px;max-width:100%;white-space:normal;display:block;margin-top:3px;color:#888}
-  .proj-row .mid-cell{font-size:11px;color:#2563eb}
-  .badge{font-size:11px;padding:2px 8px}
-
-  /* Task rows on mobile */
-  .task-row .isel{font-size:11px;padding:3px 5px}
-  .add-t{font-size:12px;padding:4px 0}
-
-  /* Modal full width on mobile */
+  /* Modal */
   .modal{width:95vw !important;max-width:420px}
 
-  /* Clients tab mobile */
-  #view-clients > div:last-child{flex-direction:column !important}
-  #cl-list{width:100% !important;max-height:200px;border-right:none !important;border-bottom:1px solid #e5e5e5}
-  #cl-detail{padding:14px !important}
+  /* Clients: keep side-by-side but reduce list width */
+  #view-clients > div:last-child{flex-direction:row !important}
+  #cl-list{width:140px !important;min-width:140px;flex-shrink:0;border-right:1px solid #e5e5e5 !important;border-bottom:none !important;max-height:none;overflow-y:auto}
+  #cl-list > div{padding:8px 10px !important;font-size:12px}
+  #cl-detail{flex:1;padding:12px !important;overflow-y:auto;font-size:12px}
+  #cl-detail h2{font-size:15px !important}
 }
 
 /* LOADING */
@@ -898,12 +889,6 @@ function render() {
           <span>${p.company}</span>
           <button onclick="event.stopPropagation();openClientView('${p.company.replace(/'/g,"\\'")}','${p.mailid}')" title="Fiche client" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#888;flex-shrink:0">👤</button>
         </div>
-        <div class="mobile-only" style="display:none;margin-top:4px;gap:4px;flex-wrap:wrap">
-          <span class="sol">${p.solution||''}</span>
-          <span class="ph">${p.phase||''}</span>
-          ${p.amount?`<span class="amt">${p.amount}</span>`:''}
-          ${taskBadges}
-        </div>
       </td>
       <td style="color:#888;font-size:10px">${p.country}</td>
       <td style="color:#888;font-size:10px">${p.agent}</td>
@@ -950,21 +935,6 @@ function render() {
     }
   });
   applyColVisibility();
-  if (window.innerWidth <= 700) applyMobileLayout();
-}
-
-function applyMobileLayout() {
-  document.querySelectorAll('.mobile-only').forEach(el => el.style.display='flex');
-  const hideIdx = [3,4,5,6,7,8,9,10,11,12,13,14];
-  document.querySelectorAll('.proj-row td, .task-row td').forEach((td,_,arr) => {
-    const row = td.parentElement;
-    const tds = [...row.querySelectorAll('td')];
-    const i = tds.indexOf(td) + 1;
-    if (hideIdx.includes(i)) td.style.display='none';
-  });
-  document.querySelectorAll('#thead th').forEach((th,i) => {
-    if (hideIdx.includes(i+1)) th.style.display='none';
-  });
 }
 
 function toggleDiamond(pid) {
