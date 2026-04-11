@@ -235,6 +235,7 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     <div class="sep"></div>
     <button id="btn-filter-tasks" onclick="toggleFilterTasks()" title="Lignes avec tâches seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">☑</button>
     <button id="btn-filter-diamond" onclick="toggleFilterDiamond()" title="Lignes importantes seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">◆</button>
+    <button id="btn-show-archived" onclick="toggleArchived()" title="Afficher tâches archivées" style="font-size:11px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">📦 Archives</button>
     <div style="position:relative;display:inline-block">
       <button onclick="toggleColDD(event)" style="font-size:11px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444">Colonnes ▾</button>
       <div id="col-dd" style="display:none;position:absolute;top:100%;right:0;z-index:200;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:6px 0;min-width:150px" onclick="event.stopPropagation()">
@@ -495,6 +496,7 @@ let sortCol = null;
 let sortDir = 'asc';
 let filterTasks = false;
 let filterDiamond = false;
+let showArchived = false;
 let selectedClientId = null;
 
 // columns: key, label, index in tr (0-based, skip expand col=0)
@@ -553,13 +555,13 @@ async function loadProjects() {
 }
 
 async function loadTasks() {
-  const rows = await sheetsGet(`${TASKS_SHEET}!A2:F1000`);
+  const rows = await sheetsGet(`${TASKS_SHEET}!A2:G1000`);
   const taskMap = {};
   let maxId = 0;
   rows.forEach(r => {
     if (!r[0]) return;
     const projId = parseInt(r[0]);
-    const t = { id: parseInt(r[1]), text: r[2]||'', status: r[3]||'todo', owner: r[4]||'Niko', note: r[5]||'' };
+    const t = { id: parseInt(r[1]), text: r[2]||'', status: r[3]||'todo', owner: r[4]||'Niko', note: r[5]||'', archived: r[6]==='1' };
     if (!taskMap[projId]) taskMap[projId] = [];
     taskMap[projId].push(t);
     if (t.id > maxId) maxId = t.id;
@@ -614,13 +616,13 @@ function scheduleSave() {
 
 async function saveTasks() {
   try {
-    const rows = [['proj_id','task_id','text','status','owner','note']];
+    const rows = [['proj_id','task_id','text','status','owner','note','archived']];
     projects.forEach(p => {
       p.tasks.forEach(t => {
-        rows.push([p.id, t.id, t.text, t.status, t.owner, t.note||'']);
+        rows.push([p.id, t.id, t.text, t.status, t.owner, t.note||'', t.archived?'1':'']);
       });
     });
-    await sheetsClear(`${TASKS_SHEET}!A1:F1000`);
+    await sheetsClear(`${TASKS_SHEET}!A1:G1000`);
     await sheetsUpdate(`${TASKS_SHEET}!A1`, rows);
     showSync('ok', 'Sauvegardé ✓');
   } catch(e) {
@@ -769,7 +771,7 @@ function getVisible() {
   const fst = document.getElementById('fSt').value;
   const fo  = document.getElementById('fOwn').value;
   let result = projects.filter(p => {
-    if (filterTasks && p.tasks.length === 0) return false;
+    if (filterTasks && p.tasks.filter(t=>!t.archived).length === 0) return false;
     if (filterDiamond && !p.diamond) return false;
     if (fps.length && !fps.includes(p.phase)) return false;
     if (fs && p.solution !== fs) return false;
@@ -874,8 +876,15 @@ function render() {
   const owners = [...new Set([...OWNERS_DEF, ...projects.flatMap(p=>p.tasks.map(t=>t.owner)).filter(Boolean)])].sort();
 
   vis.forEach(p => {
-    const vt   = p.tasks.filter(t => (!fst||t.status===fst) && (!fo||t.owner===fo));
-    const done = p.tasks.filter(t => t.status==='done').length;
+    const vt = p.tasks.filter(t => {
+      if (!showArchived && t.archived) return false;
+      if (fst && t.status !== fst) return false;
+      if (fo  && t.owner  !== fo)  return false;
+      return true;
+    });
+    const activeTasks = p.tasks.filter(t => !t.archived);
+    const done = p.tasks.filter(t => t.status==='done' && !t.archived).length;
+    const totalVisible = showArchived ? p.tasks.length : activeTasks.length;
     const tr   = document.createElement('tr'); tr.className = 'proj-row';
     tr.onclick = () => { p.expanded = !p.expanded; render(); };
     const taskBadges = p.tasks.length ? p.tasks.slice(0,3).map(t=>`<span class="badge ${BCLS[t.status]}">${STS[t.status]}</span>`).join(' ') : '';
@@ -898,13 +907,13 @@ function render() {
       <td class="mid-cell" onclick="event.stopPropagation();copyMailId('${p.mailid}')" style="cursor:pointer;color:#2563eb;text-decoration:underline dotted">${p.mailid}</td>
       <td class="amt">${p.amount}</td>
       <td style="font-size:10px;color:#aaa">${p.target}</td>
-      <td style="font-size:10px;color:#aaa">${done}/${p.tasks.length}</td>
-      <td colspan="2" style="font-size:10px">${!p.expanded&&p.tasks.length?taskBadges:''}</td>
+      <td style="font-size:10px;color:#aaa">${done}/${totalVisible}${p.tasks.filter(t=>t.archived).length>0&&!showArchived?` <span style="color:#f59e0b;font-size:9px">(+${p.tasks.filter(t=>t.archived).length}📦)</span>`:''}</td>
+      <td colspan="2" style="font-size:10px">${!p.expanded&&vt.length?vt.slice(0,2).map(t=>`<span class="badge ${BCLS[t.status]}">${STS[t.status]}</span>`).join(' '):''}</td>
       <td></td>`;
     tbody.appendChild(tr);
 
     if (p.expanded) {
-      const tasksToShow = (fst||fo) ? vt : p.tasks;
+      const tasksToShow = vt;
       tasksToShow.forEach(t => {
         const tr2 = document.createElement('tr'); tr2.className = 'task-row';
         tr2.innerHTML = `
@@ -919,7 +928,7 @@ function render() {
           <td></td>
           <td></td>
           <td></td>
-          <td style="color:#333;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="${t.text}"><strong style="color:#555;font-size:10px">${t.text}</strong>${t.note?`<span style="color:#bbb;font-size:10px;margin-left:4px">${t.note}</span>`:''}</td>
+          <td style="color:#333;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="${t.text}"><strong style="color:#555;font-size:10px">${t.archived?'📦 ':''}</strong><strong style="color:#555;font-size:10px">${t.text}</strong>${t.note?`<span style="color:#bbb;font-size:10px;margin-left:4px">${t.note}</span>`:''}</td>
           <td><select class="isel" onchange="setSt(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
             ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${t.status===v?' selected':''}>${l}</option>`).join('')}
           </select></td>
@@ -927,6 +936,7 @@ function render() {
             ${owners.map(o=>`<option value="${o}"${t.owner===o?' selected':''}>${o}</option>`).join('')}
           </select></td>
           <td><button class="del-btn" onclick="event.stopPropagation();delT(${p.id},${t.id})">✕</button></td>`;
+        tr2.style.opacity = t.archived ? '0.55' : '1';
         tbody.appendChild(tr2);
       });
       const ar = document.createElement('tr'); ar.className = 'task-row';
@@ -969,7 +979,18 @@ function copyMailId(id) {
 }
 
 // ─── TASK ACTIONS ─────────────────────────────────────────────────────────────
-function setSt(pid, tid, v)  { const t = getTask(pid,tid); if(t){t.status=v; render(); scheduleSave();} }
+function setSt(pid, tid, v) {
+  const t = getTask(pid,tid);
+  if (!t) return;
+  t.status = v;
+  if (v === 'done') {
+    t.archived = true;
+    // Show brief confirmation
+    showSync('ok', `Tâche archivée ✓`);
+    setTimeout(()=>showSync('ok','Synchronisé'),2000);
+  }
+  render(); scheduleSave();
+}
 function setOwn(pid, tid, v) { const t = getTask(pid,tid); if(t){t.owner=v;  render(); scheduleSave();} }
 function getTask(pid, tid)   { const p = projects.find(x=>x.id===pid); return p&&p.tasks.find(x=>x.id===tid); }
 function delT(pid, tid) {
@@ -977,18 +998,51 @@ function delT(pid, tid) {
   if (p) { p.tasks = p.tasks.filter(x=>x.id!==tid); render(); scheduleSave(); }
 }
 
+// ─── ARCHIVE TOGGLE ───────────────────────────────────────────────────────────
+function toggleArchived() {
+  showArchived = !showArchived;
+  const btn = document.getElementById('btn-show-archived');
+  btn.style.background = showArchived ? '#f59e0b' : '#fff';
+  btn.style.color = showArchived ? '#fff' : '#aaa';
+  btn.style.borderColor = showArchived ? '#f59e0b' : '#ddd';
+  render();
+}
+
+// ─── COMBOBOX HELPER — input + datalist (free text allowed) ───────────────────
+function comboField(id, label, values, placeholder, colSpan) {
+  const opts = values.map(v=>`<option value="${v}">`).join('');
+  return `<div${colSpan?' style="grid-column:1/-1"':''}><label>${label}</label>
+    <input id="${id}" list="${id}-dl" placeholder="${placeholder}" style="width:100%">
+    <datalist id="${id}-dl">${opts}</datalist>
+  </div>`;
+}
+
 // ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
 function openModal(pid) {
   const p = projects.find(x=>x.id===pid);
   const owners = [...new Set([...OWNERS_DEF,...projects.flatMap(px=>px.tasks.map(t=>t.owner)).filter(Boolean)])].sort();
+  const companies = [...new Set(projects.map(px=>px.company).filter(Boolean))].sort();
+  const countries = [...new Set(projects.map(px=>px.country).filter(Boolean))].sort();
+  const agents    = [...new Set(projects.map(px=>px.agent).filter(Boolean))].sort();
+
   document.getElementById('modal-area').innerHTML = `
     <div class="ov" onclick="if(event.target===this)closeModal()">
-      <div class="modal">
+      <div class="modal" style="width:340px">
         <h3>+ Tâche — ${p.company}</h3>
-        <div><label>Description</label><input id="mt" placeholder="Ex: Envoyer offre Ceragon"></div>
-        <div><label>Note (optionnel)</label><textarea id="mn" placeholder="Détails..."></textarea></div>
-        <div><label>Status</label><select id="ms">${Object.entries(STS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></div>
-        <div><label>Owner</label><select id="mo">${owners.map(o=>`<option>${o}</option>`).join('')}</select></div>
+        <div><label>Description *</label><input id="mt" placeholder="Ex: Envoyer offre Ceragon"></div>
+        <div><label>Note</label><textarea id="mn" placeholder="Détails..." style="height:45px;resize:vertical"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>Status</label>
+            <select id="ms" style="width:100%">${Object.entries(STS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+          </div>
+          <div><label>Owner</label>
+            <input id="mo" list="mo-dl" placeholder="Niko..." style="width:100%">
+            <datalist id="mo-dl">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
+          </div>
+          ${comboField('mt-company','Société',companies,'ex: MTN Ghana',false)}
+          ${comboField('mt-country','Pays',countries,'ex: Ghana',false)}
+          ${comboField('mt-agent','Agent',agents,'ex: Barlen',false)}
+        </div>
         <div class="mbtns">
           <button onclick="closeModal()">Annuler</button>
           <button class="pri" onclick="saveTask(${pid})">Ajouter</button>
@@ -997,33 +1051,28 @@ function openModal(pid) {
     </div>`;
   document.getElementById('mt').focus();
 }
+
 function openNewProject() {
-  const phases = [...new Set(projects.map(p=>p.phase).filter(Boolean))].sort();
-  const solutions = [...new Set(projects.map(p=>p.solution).filter(Boolean))].sort();
-  const agents = [...new Set(projects.map(p=>p.agent).filter(Boolean))].sort();
+  const phases     = [...new Set(projects.map(p=>p.phase).filter(Boolean))].sort();
+  const solutions  = [...new Set(projects.map(p=>p.solution).filter(Boolean))].sort();
+  const agents     = [...new Set(projects.map(p=>p.agent).filter(Boolean))].sort();
+  const countries  = [...new Set(projects.map(p=>p.country).filter(Boolean))].sort();
+  const companies  = [...new Set(projects.map(p=>p.company).filter(Boolean))].sort();
+
   document.getElementById('modal-area').innerHTML = `
     <div class="ov" onclick="if(event.target===this)closeModal()">
       <div class="modal" style="width:340px">
         <h3>+ Nouvelle ligne</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><label>Société *</label><input id="np-company" placeholder="ex: MTN Ghana"></div>
-          <div><label>Pays</label><input id="np-country" placeholder="ex: Ghana"></div>
-          <div><label>Agent</label>
-            <input id="np-agent" list="np-agent-list" placeholder="ex: Niko">
-            <datalist id="np-agent-list">${agents.map(a=>`<option value="${a}">`).join('')}</datalist>
-          </div>
-          <div><label>Solution</label>
-            <input id="np-solution" list="np-sol-list" placeholder="ex: TARANA">
-            <datalist id="np-sol-list">${solutions.map(s=>`<option value="${s}">`).join('')}</datalist>
-          </div>
-          <div style="grid-column:1/-1"><label>Phase</label>
-            <input id="np-phase" list="np-phase-list" placeholder="ex: 3 RFQ">
-            <datalist id="np-phase-list">${phases.map(p=>`<option value="${p}">`).join('')}</datalist>
-          </div>
-          <div style="grid-column:1/-1"><label>Description</label><input id="np-desc" placeholder="Notes..."></div>
-          <div><label>Mail ID</label><input id="np-mailid" placeholder="ex: 260101AB"></div>
-          <div><label>Amount</label><input id="np-amount" placeholder="ex: 50k"></div>
-          <div><label>Target</label><input id="np-target" placeholder="ex: Q3"></div>
+          ${comboField('np-company','Société *',companies,'ex: MTN Ghana',false)}
+          ${comboField('np-country','Pays',countries,'ex: Ghana',false)}
+          ${comboField('np-agent','Agent',agents,'ex: Niko',false)}
+          ${comboField('np-solution','Solution',solutions,'ex: TARANA',false)}
+          ${comboField('np-phase','Phase',phases,'ex: 3 RFQ',true)}
+          <div style="grid-column:1/-1"><label>Description</label><input id="np-desc" placeholder="Notes..." style="width:100%"></div>
+          <div><label>Mail ID</label><input id="np-mailid" placeholder="ex: 260101AB" style="width:100%"></div>
+          <div><label>Amount</label><input id="np-amount" placeholder="ex: 50k" style="width:100%"></div>
+          <div><label>Target</label><input id="np-target" placeholder="ex: Q3" style="width:100%"></div>
         </div>
         <div class="mbtns">
           <button onclick="closeModal()">Annuler</button>
@@ -1039,8 +1088,7 @@ function saveNewProject() {
   if (!company) { document.getElementById('np-company').style.borderColor='#e00'; return; }
   const maxId = projects.reduce((m,p) => Math.max(m,p.id), 0);
   const newP = {
-    id: maxId + 1,
-    company,
+    id: maxId + 1, company,
     country:  document.getElementById('np-country').value.trim(),
     agent:    document.getElementById('np-agent').value.trim(),
     solution: document.getElementById('np-solution').value.trim(),
@@ -1049,25 +1097,32 @@ function saveNewProject() {
     mailid:   document.getElementById('np-mailid').value.trim(),
     amount:   document.getElementById('np-amount').value.trim(),
     target:   document.getElementById('np-target').value.trim(),
-    expanded: true,
-    tasks: []
+    diamond: false, expanded: true, tasks: []
   };
   projects.push(newP);
-  closeModal();
-  initFilters();
-  render();
-  showSync('loading', 'Sauvegarde...');
-  saveProjects(projects).then(() => showSync('ok', 'Sauvegardé ✓')).catch(() => showSync('err', 'Erreur save'));
+  closeModal(); initFilters(); render();
+  showSync('loading','Sauvegarde...');
+  saveProjects(projects).then(()=>showSync('ok','Sauvegardé ✓')).catch(()=>showSync('err','Erreur save'));
 }
 
 function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
+
 function saveTask(pid) {
   const text = document.getElementById('mt').value.trim();
-  if (!text) return;
+  if (!text) { document.getElementById('mt').style.borderColor='#e00'; return; }
   const p = projects.find(x=>x.id===pid); if(!p) return;
-  p.tasks.push({ id: tid++, text, note: document.getElementById('mn').value.trim(), status: document.getElementById('ms').value, owner: document.getElementById('mo').value });
+  const owner = document.getElementById('mo').value.trim() || 'Niko';
+  // Override project fields if user filled them
+  const company = document.getElementById('mt-company') ? document.getElementById('mt-company').value.trim() : '';
+  const country  = document.getElementById('mt-country') ? document.getElementById('mt-country').value.trim() : '';
+  const agent    = document.getElementById('mt-agent')   ? document.getElementById('mt-agent').value.trim()   : '';
+  if (company) p.company = company;
+  if (country) p.country = country;
+  if (agent)   p.agent   = agent;
+  p.tasks.push({ id:tid++, text, note:document.getElementById('mn').value.trim(), status:document.getElementById('ms').value, owner, archived:false });
   p.expanded = true;
   closeModal(); render(); scheduleSave();
+  if (company||country||agent) saveProjects(projects);
 }
 
 document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal(); closeImport(); } });
