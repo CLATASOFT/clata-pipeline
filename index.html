@@ -152,6 +152,15 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     </div>
   </div>
 
+  <!-- TABS -->
+  <div id="tab-nav" style="background:#fff;border-bottom:1px solid #e5e5e5;display:flex;gap:0;flex-shrink:0">
+    <button id="tab-pipeline" onclick="switchTab('pipeline')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600">Pipeline</button>
+    <button id="tab-busdev" onclick="switchTab('busdev')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Bus Dev</button>
+  </div>
+
+  <!-- PIPELINE TAB -->
+  <div id="view-pipeline" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+
   <div id="toolbar">
     <input id="search" placeholder="Rechercher..." oninput="render()">
     <div class="sep"></div>
@@ -208,6 +217,60 @@ th.sort-desc::after{content:' ▼';font-size:9px}
       <tbody id="tbody"></tbody>
     </table>
   </div>
+  </div><!-- end view-pipeline -->
+
+  <!-- BUS DEV TAB -->
+  <div id="view-busdev" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div style="background:#fff;border-bottom:1px solid #e5e5e5;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <input id="bd-search" placeholder="Rechercher..." oninput="renderBD()" style="font-size:11px;padding:5px 9px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222;width:150px">
+      <label style="font-size:10px;color:#888">Catégorie:</label>
+      <select id="bd-fcat" onchange="renderBD()" style="font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222">
+        <option value="">Toutes</option>
+        <option>Nouveau marché</option>
+        <option>Nouveau produit</option>
+        <option>Partenariat</option>
+        <option>Offre commerciale</option>
+        <option>Veille marché</option>
+        <option>Autre</option>
+      </select>
+      <label style="font-size:10px;color:#888">Horizon:</label>
+      <select id="bd-fhor" onchange="renderBD()" style="font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222">
+        <option value="">Tous</option>
+        <option>Court terme</option>
+        <option>Moyen terme</option>
+        <option>Long terme</option>
+      </select>
+      <label style="font-size:10px;color:#888">Status:</label>
+      <select id="bd-fst" onchange="renderBD()" style="font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222">
+        <option value="">Tous</option>
+        <option value="todo">To Do</option>
+        <option value="inp">Waiting feedback</option>
+        <option value="done">Done</option>
+        <option value="blk">Blocked</option>
+      </select>
+      <label style="font-size:10px;color:#888">Owner:</label>
+      <select id="bd-fown" onchange="renderBD()" style="font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222">
+        <option value="">Tous</option>
+      </select>
+      <button onclick="openBDModal()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600;margin-left:auto">+ Nouvelle idée</button>
+    </div>
+    <div id="bd-stats" style="background:#fff;border-bottom:1px solid #e5e5e5;padding:6px 12px;display:flex;gap:8px;flex-shrink:0;overflow-x:auto"></div>
+    <div style="flex:1;overflow:auto">
+      <table style="border-collapse:collapse;width:100%;min-width:800px;font-size:12px">
+        <thead><tr>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2">Titre</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2;width:120px">Catégorie</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2;width:90px">Horizon</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2;width:110px">Status</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2;width:80px">Owner</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2;width:150px">Clients liés</th>
+          <th style="text-align:left;padding:6px 10px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;background:#fafafa;position:sticky;top:0;z-index:2;width:180px">Note</th>
+          <th style="width:50px;background:#fafafa;position:sticky;top:0;z-index:2"></th>
+        </tr></thead>
+        <tbody id="bd-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div id="modal-area"></div>
@@ -224,8 +287,9 @@ th.sort-desc::after{content:' ▼';font-size:9px}
 // REMPLACE CES VALEURS après setup Google Cloud
 const CLIENT_ID = '419473633385-f31vk63psdq36kqkltm8u1qpucc11cmp.apps.googleusercontent.com';
 const SPREADSHEET_ID = '1q-vgqDONkUd-WyWu35jQjiSZwKcPThAaTpSgeOWzotk'; // ID du Google Sheet des tâches
-const TASKS_SHEET = 'Tasks';   // nom de l'onglet tâches
-const PROJ_SHEET  = 'Projects'; // nom de l'onglet projets (pipeline)
+const TASKS_SHEET = 'Tasks';
+const PROJ_SHEET  = 'Projects';
+const BUSDEV_SHEET = 'BusDev';
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -234,9 +298,12 @@ const BCLS  = {todo:'b-todo', inp:'b-inp', done:'b-done', blk:'b-blk'};
 const OWNERS_DEF = ['Niko','Barlen','Friedrich','Leena','Carl','Tchini','Barlen/Amanda'];
 
 let projects = [];
+let busdevItems = [];
+let currentTab = 'pipeline';
 let tokenClient;
 let accessToken = null;
 let tid = 1;
+let bdid = 1;
 let syncTimeout = null;
 let sortCol = null;
 let sortDir = 'asc';
@@ -318,8 +385,9 @@ async function ensureSheets() {
   const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
   const names = meta.result.sheets.map(s => s.properties.title);
   const toAdd = [];
-  if (!names.includes(TASKS_SHEET)) toAdd.push({ addSheet: { properties: { title: TASKS_SHEET } } });
-  if (!names.includes(PROJ_SHEET))  toAdd.push({ addSheet: { properties: { title: PROJ_SHEET } } });
+  if (!names.includes(TASKS_SHEET))  toAdd.push({ addSheet: { properties: { title: TASKS_SHEET } } });
+  if (!names.includes(PROJ_SHEET))   toAdd.push({ addSheet: { properties: { title: PROJ_SHEET } } });
+  if (!names.includes(BUSDEV_SHEET)) toAdd.push({ addSheet: { properties: { title: BUSDEV_SHEET } } });
   if (toAdd.length) {
     await gapi.client.sheets.spreadsheets.batchUpdate({
       spreadsheetId: SPREADSHEET_ID,
@@ -335,6 +403,7 @@ async function loadAll() {
     await ensureSheets();
     await loadProjects();
     await loadTasks();
+    await loadBusDev();
     initFilters();
     render();
     showSync('ok', 'Synchronisé');
@@ -372,6 +441,17 @@ async function loadTasks() {
   projects.forEach(p => { p.tasks = taskMap[p.id] || []; });
 }
 
+async function loadBusDev() {
+  const rows = await sheetsGet(`${BUSDEV_SHEET}!A2:H1000`);
+  let maxId = 0;
+  busdevItems = rows.filter(r=>r[1]).map(r => {
+    const id = parseInt(r[0])||0;
+    if (id > maxId) maxId = id;
+    return { id, title:r[1]||'', category:r[2]||'', horizon:r[3]||'Court terme', status:r[4]||'todo', owner:r[5]||'Niko', clients:r[6]||'', note:r[7]||'' };
+  });
+  bdid = maxId + 1;
+}
+
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 function scheduleSave() {
   showSync('loading', 'Sauvegarde...');
@@ -401,6 +481,16 @@ async function saveProjects(data) {
   data.forEach(r => rows.push([r.country,r.company,r.agent,r.solution,r.phase,r.desc,r.mailid,r.amount,r.target]));
   await sheetsClear(`${PROJ_SHEET}!A1:J1000`);
   await sheetsUpdate(`${PROJ_SHEET}!A1`, rows);
+}
+
+async function saveBusDev() {
+  try {
+    const rows = [['id','title','category','horizon','status','owner','clients','note']];
+    busdevItems.forEach(b => rows.push([b.id,b.title,b.category,b.horizon,b.status,b.owner,b.clients,b.note]));
+    await sheetsClear(`${BUSDEV_SHEET}!A1:H1000`);
+    await sheetsUpdate(`${BUSDEV_SHEET}!A1`, rows);
+    showSync('ok', 'Sauvegardé ✓');
+  } catch(e) { showSync('err', 'Erreur save'); }
 }
 
 // ─── XLS IMPORT ───────────────────────────────────────────────────────────────
@@ -725,6 +815,160 @@ function saveTask(pid) {
 }
 
 document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal(); closeImport(); } });
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('view-pipeline').style.display = tab === 'pipeline' ? 'flex' : 'none';
+  document.getElementById('view-busdev').style.display   = tab === 'busdev'   ? 'flex' : 'none';
+  document.getElementById('tab-pipeline').style.cssText = tab==='pipeline'
+    ? 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
+    : 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
+  document.getElementById('tab-busdev').style.cssText = tab==='busdev'
+    ? 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
+    : 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
+  if (tab === 'busdev') renderBD();
+}
+
+// ─── BUS DEV RENDER ───────────────────────────────────────────────────────────
+const BD_CAT_COLORS = {
+  'Nouveau marché':    {bg:'#dbeafe',color:'#1e40af'},
+  'Nouveau produit':   {bg:'#ede9ff',color:'#4338ca'},
+  'Partenariat':       {bg:'#fef3c7',color:'#92400e'},
+  'Offre commerciale': {bg:'#d1fae5',color:'#065f46'},
+  'Veille marché':     {bg:'#f0f0f0',color:'#555'},
+  'Autre':             {bg:'#f5f5f5',color:'#888'},
+};
+const HOR_COLORS = {'Court terme':'#ef4444','Moyen terme':'#f59e0b','Long terme':'#6366f1'};
+
+function renderBD() {
+  const q    = document.getElementById('bd-search').value.toLowerCase();
+  const fcat = document.getElementById('bd-fcat').value;
+  const fhor = document.getElementById('bd-fhor').value;
+  const fst  = document.getElementById('bd-fst').value;
+  const fown = document.getElementById('bd-fown').value;
+
+  // update owner filter
+  const ownerSet = new Set(OWNERS_DEF);
+  busdevItems.forEach(b => { if(b.owner) ownerSet.add(b.owner); });
+  const bdOwn = document.getElementById('bd-fown'); const curOwn = bdOwn.value;
+  bdOwn.innerHTML = '<option value="">Tous</option>' + [...ownerSet].sort().map(o=>`<option value="${o}"${o===curOwn?' selected':''}>${o}</option>`).join('');
+
+  const vis = busdevItems.filter(b => {
+    if (fcat && b.category !== fcat) return false;
+    if (fhor && b.horizon  !== fhor) return false;
+    if (fst  && b.status   !== fst)  return false;
+    if (fown && b.owner    !== fown) return false;
+    if (q && ![b.title,b.category,b.clients,b.note].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // stats
+  document.getElementById('bd-stats').innerHTML = `
+    <div class="sc"><div class="n">${vis.length}</div><div class="l">Idées</div></div>
+    <div class="sc"><div class="n">${busdevItems.filter(b=>b.status==='todo').length}</div><div class="l">To Do</div></div>
+    <div class="sc"><div class="n">${busdevItems.filter(b=>b.status==='inp').length}</div><div class="l">Waiting</div></div>
+    <div class="sc"><div class="n">${busdevItems.filter(b=>b.status==='done').length}</div><div class="l">Done</div></div>
+    <div class="sc"><div class="n">${busdevItems.filter(b=>b.horizon==='Court terme').length}</div><div class="l">Court terme</div></div>
+  `;
+
+  const tbody = document.getElementById('bd-tbody');
+  tbody.innerHTML = '';
+  const owners = [...new Set([...OWNERS_DEF,...busdevItems.map(b=>b.owner).filter(Boolean)])].sort();
+
+  vis.forEach(b => {
+    const cat = BD_CAT_COLORS[b.category] || {bg:'#f5f5f5',color:'#888'};
+    const horColor = HOR_COLORS[b.horizon] || '#888';
+    const tr = document.createElement('tr');
+    tr.style.cssText = 'border-bottom:1px solid #f0f0f0';
+    tr.innerHTML = `
+      <td style="padding:8px 10px;color:#1a1a1a;font-weight:500;font-size:11px">${b.title}</td>
+      <td style="padding:8px 10px"><span style="display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:${cat.bg};color:${cat.color};white-space:nowrap">${b.category||'—'}</span></td>
+      <td style="padding:8px 10px"><span style="font-size:10px;font-weight:600;color:${horColor}">${b.horizon}</span></td>
+      <td style="padding:8px 10px">
+        <select style="font-size:10px;padding:2px 4px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#222" onchange="setBDStatus(${b.id},this.value)">
+          ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${b.status===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+      </td>
+      <td style="padding:8px 10px">
+        <select style="font-size:10px;padding:2px 4px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#222" onchange="setBDOwner(${b.id},this.value)">
+          ${owners.map(o=>`<option value="${o}"${b.owner===o?' selected':''}>${o}</option>`).join('')}
+        </select>
+      </td>
+      <td style="padding:8px 10px;font-size:10px;color:#888">${b.clients}</td>
+      <td style="padding:8px 10px;font-size:10px;color:#aaa;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${b.note}">${b.note}</td>
+      <td style="padding:8px 10px;text-align:right">
+        <button onclick="editBDModal(${b.id})" style="font-size:10px;background:none;border:none;cursor:pointer;color:#aaa;margin-right:4px">✎</button>
+        <button onclick="delBD(${b.id})" style="font-size:10px;background:none;border:none;cursor:pointer;color:#ddd">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  if (!vis.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="8" style="padding:30px;text-align:center;color:#bbb;font-size:12px">Aucune idée — clique "+ Nouvelle idée" pour commencer</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+function setBDStatus(id, v) { const b=busdevItems.find(x=>x.id===id); if(b){b.status=v;renderBD();showSync('loading','Sauvegarde...');clearTimeout(syncTimeout);syncTimeout=setTimeout(saveBusDev,1500);} }
+function setBDOwner(id, v)  { const b=busdevItems.find(x=>x.id===id); if(b){b.owner=v; renderBD();showSync('loading','Sauvegarde...');clearTimeout(syncTimeout);syncTimeout=setTimeout(saveBusDev,1500);} }
+function delBD(id) {
+  if (!confirm('Supprimer cette idée ?')) return;
+  busdevItems = busdevItems.filter(x=>x.id!==id);
+  renderBD(); saveBusDev();
+}
+
+function openBDModal(editId) {
+  const b = editId ? busdevItems.find(x=>x.id===editId) : null;
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="width:360px">
+        <h3>${b ? 'Modifier idée' : '+ Nouvelle idée Bus Dev'}</h3>
+        <div><label>Titre *</label><input id="bd-title" value="${b?b.title:''}" placeholder="Ex: Développer offre CPE 5G Afrique"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>Catégorie</label>
+            <select id="bd-cat">
+              ${['Nouveau marché','Nouveau produit','Partenariat','Offre commerciale','Veille marché','Autre'].map(c=>`<option${b&&b.category===c?' selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div><label>Horizon</label>
+            <select id="bd-hor">
+              ${['Court terme','Moyen terme','Long terme'].map(h=>`<option${b&&b.horizon===h?' selected':''}>${h}</option>`).join('')}
+            </select>
+          </div>
+          <div><label>Status</label>
+            <select id="bd-st">
+              ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${b&&b.status===v?' selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+          <div><label>Owner</label>
+            <select id="bd-own">
+              ${OWNERS_DEF.map(o=>`<option${b&&b.owner===o?' selected':''}>${o}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div><label>Clients liés (optionnel)</label><input id="bd-clients" value="${b?b.clients:''}" placeholder="Ex: Emtel, Atcomm, Orange Mada"></div>
+        <div><label>Note</label><textarea id="bd-note" style="height:55px;resize:vertical">${b?b.note:''}</textarea></div>
+        <div class="mbtns">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveBDModal(${editId||'null'})">${b?'Enregistrer':'Ajouter'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('bd-title').focus();
+}
+function editBDModal(id) { openBDModal(id); }
+function saveBDModal(editId) {
+  const title = document.getElementById('bd-title').value.trim();
+  if (!title) { document.getElementById('bd-title').style.borderColor='#e00'; return; }
+  if (editId) {
+    const b = busdevItems.find(x=>x.id===editId);
+    if (b) { b.title=title; b.category=document.getElementById('bd-cat').value; b.horizon=document.getElementById('bd-hor').value; b.status=document.getElementById('bd-st').value; b.owner=document.getElementById('bd-own').value; b.clients=document.getElementById('bd-clients').value.trim(); b.note=document.getElementById('bd-note').value.trim(); }
+  } else {
+    busdevItems.push({ id:bdid++, title, category:document.getElementById('bd-cat').value, horizon:document.getElementById('bd-hor').value, status:document.getElementById('bd-st').value, owner:document.getElementById('bd-own').value, clients:document.getElementById('bd-clients').value.trim(), note:document.getElementById('bd-note').value.trim() });
+  }
+  closeModal(); renderBD(); saveBusDev();
+}
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 window.onload = () => { initGoogle(); if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js"); };
