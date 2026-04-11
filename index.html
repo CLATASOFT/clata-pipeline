@@ -596,8 +596,16 @@ function render() {
         const tr2 = document.createElement('tr'); tr2.className = 'task-row';
         tr2.innerHTML = `
           <td></td>
-          <td colspan="9" style="color:#333;font-size:11px">${t.text}${t.note?`<span style="color:#bbb;font-size:10px;margin-left:6px">${t.note}</span>`:''}</td>
           <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td style="color:#333;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px" title="${t.text}">${t.text}${t.note?`<span style="color:#bbb;font-size:10px;margin-left:4px">${t.note}</span>`:''}</td>
           <td><select class="isel" onchange="setSt(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
             ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${t.status===v?' selected':''}>${l}</option>`).join('')}
           </select></td>
@@ -608,7 +616,7 @@ function render() {
         tbody.appendChild(tr2);
       });
       const ar = document.createElement('tr'); ar.className = 'task-row';
-      ar.innerHTML = `<td></td><td colspan="13"><button class="add-t" onclick="event.stopPropagation();openModal(${p.id})">+ tâche</button></td>`;
+      ar.innerHTML = `<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><button class="add-t" onclick="event.stopPropagation();openModal(${p.id})">+ tâche</button></td><td></td><td></td><td></td>`;
       tbody.appendChild(ar);
     }
   });
