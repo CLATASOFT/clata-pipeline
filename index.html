@@ -153,9 +153,10 @@ th.sort-desc::after{content:' ▼';font-size:9px}
   </div>
 
   <!-- TABS -->
-  <div id="tab-nav" style="background:#fff;border-bottom:1px solid #e5e5e5;display:flex;gap:0;flex-shrink:0">
+  <div id="tab-nav" style="background:#fff;border-bottom:1px solid #e5e5e5;display:flex;gap:0;align-items:center;flex-shrink:0">
     <button id="tab-pipeline" onclick="switchTab('pipeline')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600">Pipeline</button>
     <button id="tab-busdev" onclick="switchTab('busdev')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Bus Dev</button>
+    <button id="tab-clients" onclick="switchTab('clients')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Clients</button>
   </div>
 
   <!-- PIPELINE TAB -->
@@ -192,6 +193,19 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     <div class="sep"></div>
     <button id="btn-import" onclick="openImport()">Import XLS</button>
     <button onclick="openNewProject()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600">+ Nouvelle ligne</button>
+    <div class="sep"></div>
+    <button id="btn-filter-tasks" onclick="toggleFilterTasks()" title="Lignes avec tâches seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">☑</button>
+    <button id="btn-filter-diamond" onclick="toggleFilterDiamond()" title="Lignes importantes seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">◆</button>
+    <div style="position:relative;display:inline-block">
+      <button onclick="toggleColDD(event)" style="font-size:11px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444">Colonnes ▾</button>
+      <div id="col-dd" style="display:none;position:absolute;top:100%;right:0;z-index:200;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:6px 0;min-width:150px" onclick="event.stopPropagation()">
+        <div style="padding:4px 10px;border-bottom:1px solid #f0f0f0;margin-bottom:2px;display:flex;justify-content:space-between">
+          <button onclick="setAllCols(true)"  style="font-size:10px;color:#888;background:none;border:none;cursor:pointer;padding:0">Tout afficher</button>
+          <button onclick="setAllCols(false)" style="font-size:10px;color:#888;background:none;border:none;cursor:pointer;padding:0">Tout cacher</button>
+        </div>
+        <div id="col-checks"></div>
+      </div>
+    </div>
   </div>
 
   <div id="stats-bar"></div>
@@ -200,6 +214,7 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     <table>
       <thead id="thead"><tr>
         <th style="width:16px"></th>
+        <th style="width:22px">◆</th>
         <th class="sortable" onclick="sortBy('company')">Société</th>
         <th class="sortable" style="width:80px" onclick="sortBy('country')">Pays</th>
         <th class="sortable" style="width:68px" onclick="sortBy('agent')">Agent</th>
@@ -271,65 +286,45 @@ th.sort-desc::after{content:' ▼';font-size:9px}
       </table>
     </div>
   </div>
+
+  <!-- CLIENTS TAB -->
+  <div id="view-clients" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div style="background:#fff;border-bottom:1px solid #e5e5e5;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <input id="cl-search" placeholder="Rechercher un client..." oninput="renderClients()" style="font-size:11px;padding:5px 9px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222;width:180px">
+      <button onclick="openClientModal()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600;margin-left:auto">+ Nouveau client</button>
+    </div>
+    <div style="flex:1;display:flex;overflow:hidden">
+      <div id="cl-list" style="width:220px;flex-shrink:0;border-right:1px solid #e5e5e5;overflow-y:auto;background:#fafafa"></div>
+      <div id="cl-detail" style="flex:1;overflow-y:auto;padding:24px;background:#fff">
+        <div style="color:#bbb;font-size:13px;text-align:center;margin-top:60px">Sélectionne un client</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="modal-area"></div>
 <div id="import-modal"></div>
 
-<!-- Google API -->
+<!-- Google API for Sheets -->
 <script src="https://apis.google.com/js/api.js"></script>
+<!-- Google Identity Services (web OAuth) -->
 <script src="https://accounts.google.com/gsi/client"></script>
 <!-- SheetJS for XLS import -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
-// REMPLACE CES VALEURS après setup Google Cloud
-const CLIENT_ID = '419473633385-f31vk63psdq36kqkltm8u1qpucc11cmp.apps.googleusercontent.com';
-const SPREADSHEET_ID = '1q-vgqDONkUd-WyWu35jQjiSZwKcPThAaTpSgeOWzotk'; // ID du Google Sheet des tâches
-const TASKS_SHEET = 'Tasks';
-const PROJ_SHEET  = 'Projects';
-const BUSDEV_SHEET = 'BusDev';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+// ─── DUAL MODE: ELECTRON + WEB ────────────────────────────────────────────────
+const IS_ELECTRON = !!(window.electronAPI && window.electronAPI.isElectron);
+const CLIENT_ID_WEB = '419473633385-f31vk63psdq36kqkltm8u1qpucc11cmp.apps.googleusercontent.com';
+let currentToken = null;
+let tokenClient = null;
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
-const STS   = {todo:'To Do', inp:'Waiting feedback', done:'Done', blk:'Blocked'};
-const BCLS  = {todo:'b-todo', inp:'b-inp', done:'b-done', blk:'b-blk'};
-const OWNERS_DEF = ['Niko','Barlen','Friedrich','Leena','Carl','Tchini','Barlen/Amanda'];
-
-let projects = [];
-let busdevItems = [];
-let currentTab = 'pipeline';
-let tokenClient;
-let accessToken = null;
-let tid = 1;
-let bdid = 1;
-let syncTimeout = null;
-let sortCol = null;
-let sortDir = 'asc';
-
-// ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
-function initGoogle() {
-  gapi.load('client', async () => {
-    await gapi.client.init({
-      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
-    });
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: async (resp) => {
-        if (resp.error) { showSync('err', 'Auth error'); return; }
-        accessToken = resp.access_token;
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'flex';
-        await loadAll();
-      }
-    });
-    // Try silent login
-    const saved = sessionStorage.getItem('clata_token');
-    if (saved) {
-      accessToken = saved;
+async function initGoogle() {
+  if (IS_ELECTRON) {
+    // Electron: try saved token
+    const token = await window.electronAPI.getToken();
+    if (token) {
+      currentToken = token;
       document.getElementById('loading').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
       await loadAll();
@@ -337,63 +332,154 @@ function initGoogle() {
       document.getElementById('loading').style.display = 'none';
       document.getElementById('auth-screen').style.display = 'flex';
     }
-  });
+  } else {
+    // Web: init gapi + GSI
+    gapi.load('client', async () => {
+      await gapi.client.init({ discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID_WEB,
+        scope: 'https://www.googleapis.com/auth/spreadsheets',
+        callback: async (resp) => {
+          if (resp.error) { showSync('err', 'Auth error'); return; }
+          currentToken = resp.access_token;
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('main-app').style.display = 'flex';
+          await loadAll();
+        }
+      });
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+    });
+  }
 }
-function signIn() {
-  tokenClient.requestAccessToken({prompt: 'consent'});
+
+async function signIn() {
+  if (IS_ELECTRON) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('loading').style.display = 'flex';
+    document.querySelector('#loading p').textContent = 'Login Google en cours dans le navigateur...';
+    const result = await window.electronAPI.startOAuth();
+    if (result.ok) {
+      currentToken = result.access_token;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main-app').style.display = 'flex';
+      await loadAll();
+    } else {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+      alert('Erreur login: ' + result.error);
+    }
+  } else {
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  }
 }
-function signOut() {
-  google.accounts.oauth2.revoke(accessToken, () => {
-    accessToken = null;
-    sessionStorage.removeItem('clata_token');
-    document.getElementById('main-app').style.display = 'none';
-    document.getElementById('auth-screen').style.display = 'flex';
-    projects = [];
-  });
+
+async function signOut() {
+  if (IS_ELECTRON) {
+    await window.electronAPI.signOut();
+  } else {
+    if (currentToken) google.accounts.oauth2.revoke(currentToken, () => {});
+  }
+  currentToken = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  projects = [];
 }
+
+// ─── SHEETS API (dual mode) ───────────────────────────────────────────────────
+const SPREADSHEET_ID = '1q-vgqDONkUd-WyWu35jQjiSZwKcPThAaTpSgeOWzotk';
+const TASKS_SHEET   = 'Tasks';
+const PROJ_SHEET    = 'Projects';
+const BUSDEV_SHEET  = 'BusDev';
+const CLIENTS_SHEET = 'Clients';
+const BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+async function sheetsGet(range) {
+  if (IS_ELECTRON) {
+    const data = await window.electronAPI.sheetsRequest({ method:'GET', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`, token:currentToken });
+    return data.values || [];
+  } else {
+    const r = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range });
+    return r.result.values || [];
+  }
+}
+async function sheetsUpdate(range, values) {
+  if (IS_ELECTRON) {
+    await window.electronAPI.sheetsRequest({ method:'PUT', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=RAW`, body:{values}, token:currentToken });
+  } else {
+    await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId:SPREADSHEET_ID, range, valueInputOption:'RAW', resource:{values} });
+  }
+}
+async function sheetsClear(range) {
+  if (IS_ELECTRON) {
+    await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:clear`, body:{}, token:currentToken });
+  } else {
+    await gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId:SPREADSHEET_ID, range });
+  }
+}
+async function ensureSheets() {
+  let names;
+  if (IS_ELECTRON) {
+    const data = await window.electronAPI.sheetsRequest({ method:'GET', url:`${BASE}/${SPREADSHEET_ID}`, token:currentToken });
+    names = data.sheets.map(s => s.properties.title);
+  } else {
+    const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId:SPREADSHEET_ID });
+    names = meta.result.sheets.map(s => s.properties.title);
+  }
+  const toAdd = [];
+  if (!names.includes(TASKS_SHEET))   toAdd.push({ addSheet: { properties: { title: TASKS_SHEET } } });
+  if (!names.includes(PROJ_SHEET))    toAdd.push({ addSheet: { properties: { title: PROJ_SHEET } } });
+  if (!names.includes(BUSDEV_SHEET))  toAdd.push({ addSheet: { properties: { title: BUSDEV_SHEET } } });
+  if (!names.includes(CLIENTS_SHEET)) toAdd.push({ addSheet: { properties: { title: CLIENTS_SHEET } } });
+  if (toAdd.length) {
+    if (IS_ELECTRON) {
+      await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}:batchUpdate`, body:{requests:toAdd}, token:currentToken });
+    } else {
+      await gapi.client.sheets.spreadsheets.batchUpdate({ spreadsheetId:SPREADSHEET_ID, resource:{requests:toAdd} });
+    }
+  }
+}
+const STS   = {todo:'To Do', inp:'Waiting feedback', done:'Done', blk:'Blocked'};
+const BCLS  = {todo:'b-todo', inp:'b-inp', done:'b-done', blk:'b-blk'};
+const OWNERS_DEF = ['Niko','Barlen','Friedrich','Leena','Carl','Tchini','Barlen/Amanda'];
+
+let projects = [];
+let busdevItems = [];
+let clientsData = [];
+let currentTab = 'pipeline';
+let tid = 1;
+let bdid = 1;
+let clid = 1;
+let syncTimeout = null;
+let sortCol = null;
+let sortDir = 'asc';
+let filterTasks = false;
+let filterDiamond = false;
+let selectedClientId = null;
+
+// columns: key, label, index in tr (0-based, skip expand col=0)
+const COLS = [
+  {key:'diamond',  label:'◆ Important',  idx:1, hideable:false},
+  {key:'company',  label:'Société',      idx:2, hideable:false},
+  {key:'country',  label:'Pays',         idx:3, hideable:true},
+  {key:'agent',    label:'Agent',        idx:4, hideable:true},
+  {key:'solution', label:'Solution',     idx:5, hideable:true},
+  {key:'phase',    label:'Phase',        idx:6, hideable:true},
+  {key:'desc',     label:'Description',  idx:7, hideable:true},
+  {key:'mailid',   label:'Mail ID',      idx:8, hideable:true},
+  {key:'amount',   label:'Amount',       idx:9, hideable:true},
+  {key:'target',   label:'Target',       idx:10,hideable:true},
+  {key:'tasks',    label:'Tâches',       idx:11,hideable:true},
+  {key:'status',   label:'Status',       idx:12,hideable:false},
+  {key:'owner',    label:'Owner',        idx:13,hideable:false},
+];
+let hiddenCols = new Set(JSON.parse(localStorage.getItem('clata_hidden_cols')||'[]'));
 
 // ─── SYNC STATUS ──────────────────────────────────────────────────────────────
 function showSync(state, label) {
   document.getElementById('sync-dot').className = state;
   document.getElementById('sync-label').textContent = label;
-}
-
-// ─── SHEETS API ───────────────────────────────────────────────────────────────
-async function sheetsGet(range) {
-  const r = await gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: SPREADSHEET_ID,
-    range
-  });
-  return r.result.values || [];
-}
-async function sheetsUpdate(range, values) {
-  await gapi.client.sheets.spreadsheets.values.update({
-    spreadsheetId: SPREADSHEET_ID,
-    range,
-    valueInputOption: 'RAW',
-    resource: { values }
-  });
-}
-async function sheetsClear(range) {
-  await gapi.client.sheets.spreadsheets.values.clear({
-    spreadsheetId: SPREADSHEET_ID,
-    range
-  });
-}
-async function ensureSheets() {
-  // Create sheets if they don't exist
-  const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-  const names = meta.result.sheets.map(s => s.properties.title);
-  const toAdd = [];
-  if (!names.includes(TASKS_SHEET))  toAdd.push({ addSheet: { properties: { title: TASKS_SHEET } } });
-  if (!names.includes(PROJ_SHEET))   toAdd.push({ addSheet: { properties: { title: PROJ_SHEET } } });
-  if (!names.includes(BUSDEV_SHEET)) toAdd.push({ addSheet: { properties: { title: BUSDEV_SHEET } } });
-  if (toAdd.length) {
-    await gapi.client.sheets.spreadsheets.batchUpdate({
-      spreadsheetId: SPREADSHEET_ID,
-      resource: { requests: toAdd }
-    });
-  }
 }
 
 // ─── LOAD ─────────────────────────────────────────────────────────────────────
@@ -404,6 +490,7 @@ async function loadAll() {
     await loadProjects();
     await loadTasks();
     await loadBusDev();
+    await loadClients();
     initFilters();
     render();
     showSync('ok', 'Synchronisé');
@@ -414,13 +501,14 @@ async function loadAll() {
 }
 
 async function loadProjects() {
-  const rows = await sheetsGet(`${PROJ_SHEET}!A2:J1000`);
+  const rows = await sheetsGet(`${PROJ_SHEET}!A2:K1000`);
   if (!rows.length) return;
   projects = rows.filter(r => r[1]).map((r, i) => ({
     id: i + 1,
     country:  r[0]||'', company: r[1]||'', agent:   r[2]||'',
     solution: r[3]||'', phase:   r[4]||'', desc:    r[5]||'',
     mailid:   r[6]||'', amount:  r[7]||'', target:  r[8]||'',
+    diamond:  r[9]==='1',
     expanded: false, tasks: []
   }));
 }
@@ -452,6 +540,32 @@ async function loadBusDev() {
   bdid = maxId + 1;
 }
 
+async function loadClients() {
+  const rows = await sheetsGet(`${CLIENTS_SHEET}!A2:J1000`);
+  let maxId = 0;
+  clientsData = rows.filter(r=>r[1]).map(r => {
+    const id = parseInt(r[0])||0;
+    if (id > maxId) maxId = id;
+    return {
+      id, name:r[1]||'', country:r[2]||'', website:r[3]||'',
+      contacts: r[4] ? JSON.parse(r[4]) : [],
+      phones: r[5]||'', emails: r[6]||'',
+      notes: r[7]||'', tags: r[8]||'', mailid: r[9]||''
+    };
+  });
+  clid = maxId + 1;
+}
+
+async function saveClients() {
+  try {
+    const rows = [['id','name','country','website','contacts','phones','emails','notes','tags','mailid']];
+    clientsData.forEach(c => rows.push([c.id,c.name,c.country,c.website,JSON.stringify(c.contacts),c.phones,c.emails,c.notes,c.tags,c.mailid]));
+    await sheetsClear(`${CLIENTS_SHEET}!A1:J1000`);
+    await sheetsUpdate(`${CLIENTS_SHEET}!A1`, rows);
+    showSync('ok', 'Sauvegardé ✓');
+  } catch(e) { showSync('err', 'Erreur save'); }
+}
+
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 function scheduleSave() {
   showSync('loading', 'Sauvegarde...');
@@ -477,9 +591,9 @@ async function saveTasks() {
 }
 
 async function saveProjects(data) {
-  const rows = [['Country','Company','Agent','Solution','Phase','Description','mail ID','Amount','Target']];
-  data.forEach(r => rows.push([r.country,r.company,r.agent,r.solution,r.phase,r.desc,r.mailid,r.amount,r.target]));
-  await sheetsClear(`${PROJ_SHEET}!A1:J1000`);
+  const rows = [['Country','Company','Agent','Solution','Phase','Description','mail ID','Amount','Target','Diamond']];
+  data.forEach(r => rows.push([r.country,r.company,r.agent,r.solution,r.phase,r.desc,r.mailid,r.amount,r.target,r.diamond?'1':'']));
+  await sheetsClear(`${PROJ_SHEET}!A1:K1000`);
   await sheetsUpdate(`${PROJ_SHEET}!A1`, rows);
 }
 
@@ -583,13 +697,28 @@ function clearPhases() {
   document.getElementById('phase-btn').textContent = 'Toutes ▾';
   render();
 }
-document.addEventListener('click', () => { const dd = document.getElementById('phase-dd'); if(dd) dd.style.display = 'none'; });
+// phase-dd closed by global click listener in col visibility section
 function updateOwners() {
   const set = new Set(OWNERS_DEF);
   projects.forEach(p => p.tasks.forEach(t => { if(t.owner) set.add(t.owner); }));
   const sel = document.getElementById('fOwn'); const cur = sel.value;
   sel.innerHTML = '<option value="">Tous</option>' + [...set].sort().map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
 }
+function toggleFilterTasks() {
+  filterTasks = !filterTasks;
+  const btn = document.getElementById('btn-filter-tasks');
+  btn.style.background = filterTasks ? '#1a1a1a' : '#fff';
+  btn.style.color = filterTasks ? '#fff' : '#aaa';
+  render();
+}
+function toggleFilterDiamond() {
+  filterDiamond = !filterDiamond;
+  const btn = document.getElementById('btn-filter-diamond');
+  btn.style.background = filterDiamond ? '#f59e0b' : '#fff';
+  btn.style.color = filterDiamond ? '#fff' : '#aaa';
+  render();
+}
+
 function getSelectedPhases() {
   return [...document.querySelectorAll('#phase-checks input:checked')].map(cb => cb.value);
 }
@@ -601,6 +730,8 @@ function getVisible() {
   const fst = document.getElementById('fSt').value;
   const fo  = document.getElementById('fOwn').value;
   let result = projects.filter(p => {
+    if (filterTasks && p.tasks.length === 0) return false;
+    if (filterDiamond && !p.diamond) return false;
     if (fps.length && !fps.includes(p.phase)) return false;
     if (fs && p.solution !== fs) return false;
     if (fa && p.agent !== fa) return false;
@@ -634,6 +765,50 @@ function updateStats(vis) {
   `;
 }
 
+// ─── COLUMN VISIBILITY ────────────────────────────────────────────────────────
+function toggleColDD(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('col-dd');
+  if (dd.style.display === 'none') {
+    // populate checkboxes
+    dd.querySelector('#col-checks') || dd.appendChild(document.createElement('div'));
+    document.getElementById('col-checks').innerHTML = COLS.filter(c=>c.hideable).map(c=>`
+      <label style="display:flex;align-items:center;gap:7px;padding:5px 10px;cursor:pointer;font-size:11px;color:#222" onmouseenter="this.style.background='#f5f5f5'" onmouseleave="this.style.background=''">
+        <input type="checkbox" ${!hiddenCols.has(c.key)?'checked':''} onchange="toggleCol('${c.key}',this.checked)" style="cursor:pointer;accent-color:#1a1a1a"> ${c.label}
+      </label>`).join('');
+    dd.style.display = 'block';
+  } else {
+    dd.style.display = 'none';
+  }
+}
+function toggleCol(key, visible) {
+  if (visible) hiddenCols.delete(key); else hiddenCols.add(key);
+  localStorage.setItem('clata_hidden_cols', JSON.stringify([...hiddenCols]));
+  applyColVisibility();
+}
+function setAllCols(visible) {
+  COLS.filter(c=>c.hideable).forEach(c => { if(visible) hiddenCols.delete(c.key); else hiddenCols.add(c.key); });
+  localStorage.setItem('clata_hidden_cols', JSON.stringify([...hiddenCols]));
+  document.querySelectorAll('#col-checks input').forEach(cb => cb.checked = visible);
+  applyColVisibility();
+}
+function applyColVisibility() {
+  COLS.forEach(c => {
+    const hide = hiddenCols.has(c.key);
+    // hide th
+    const ths = document.querySelectorAll(`#thead th`);
+    if (ths[c.idx]) ths[c.idx].style.display = hide ? 'none' : '';
+    // hide all tds at same column index in proj-rows and task-rows
+    document.querySelectorAll(`.proj-row td:nth-child(${c.idx+1}), .task-row td:nth-child(${c.idx+1})`).forEach(td => {
+      td.style.display = hide ? 'none' : '';
+    });
+  });
+}
+document.addEventListener('click', () => {
+  const dd = document.getElementById('col-dd'); if(dd) dd.style.display='none';
+  const pdd = document.getElementById('phase-dd'); if(pdd) pdd.style.display='none';
+});
+
 // ─── SORT ─────────────────────────────────────────────────────────────────────
 function sortBy(col) {
   if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
@@ -666,13 +841,19 @@ function render() {
     tr.onclick = () => { p.expanded = !p.expanded; render(); };
     tr.innerHTML = `
       <td class="exp">${p.expanded?'▾':'▸'}</td>
-      <td class="pname">${p.company}</td>
+      <td style="text-align:center;cursor:pointer" onclick="event.stopPropagation();toggleDiamond(${p.id})" title="Marquer comme important">
+        <span style="font-size:14px;color:${p.diamond?'#f59e0b':'#ddd'}">${p.diamond?'◆':'◇'}</span>
+      </td>
+      <td class="pname" style="display:flex;align-items:center;gap:5px">
+        ${p.company}
+        <button onclick="event.stopPropagation();openClientView('${p.company.replace(/'/g,"\\'")}','${p.mailid}')" title="Fiche client" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#888;flex-shrink:0">👤</button>
+      </td>
       <td style="color:#888;font-size:10px">${p.country}</td>
       <td style="color:#888;font-size:10px">${p.agent}</td>
       <td><span class="sol">${p.solution||'—'}</span></td>
       <td><span class="ph">${p.phase||'—'}</span></td>
       <td class="desc-cell" title="${p.desc}">${p.desc}</td>
-      <td class="mid-cell">${p.mailid}</td>
+      <td class="mid-cell" title="Cliquer pour ouvrir dans Outlook" onclick="event.stopPropagation();copyMailId('${p.mailid}')" style="cursor:pointer;color:#2563eb;text-decoration:underline dotted">${p.mailid}</td>
       <td class="amt">${p.amount}</td>
       <td style="font-size:10px;color:#aaa">${p.target}</td>
       <td style="font-size:10px;color:#aaa">${done}/${p.tasks.length}</td>
@@ -710,6 +891,38 @@ function render() {
       tbody.appendChild(ar);
     }
   });
+  applyColVisibility();
+}
+
+function toggleDiamond(pid) {
+  const p = projects.find(x=>x.id===pid);
+  if (!p) return;
+  p.diamond = !p.diamond;
+  render();
+  showSync('loading','Sauvegarde...');
+  saveProjects(projects).then(()=>showSync('ok','Sauvegardé ✓')).catch(()=>showSync('err','Erreur save'));
+}
+
+function copyMailId(id) {
+  if (!id) return;
+  if (IS_ELECTRON) {
+    showSync('loading', `Ouverture "${id}"...`);
+    window.electronAPI.openOutlookFolder(id).then(result => {
+      if (result.ok) {
+        showSync('ok', `Outlook: "${id}" ouvert ✓`);
+        setTimeout(() => showSync('ok', 'Synchronisé'), 3000);
+      } else {
+        navigator.clipboard.writeText(id).catch(()=>{});
+        showSync('err', result.error);
+        setTimeout(() => showSync('ok', 'Synchronisé'), 4000);
+      }
+    });
+  } else {
+    navigator.clipboard.writeText(id).then(() => {
+      showSync('ok', `"${id}" copié ✓`);
+      setTimeout(() => showSync('ok', 'Synchronisé'), 2000);
+    });
+  }
 }
 
 // ─── TASK ACTIONS ─────────────────────────────────────────────────────────────
@@ -821,13 +1034,16 @@ function switchTab(tab) {
   currentTab = tab;
   document.getElementById('view-pipeline').style.display = tab === 'pipeline' ? 'flex' : 'none';
   document.getElementById('view-busdev').style.display   = tab === 'busdev'   ? 'flex' : 'none';
-  document.getElementById('tab-pipeline').style.cssText = tab==='pipeline'
-    ? 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
-    : 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
-  document.getElementById('tab-busdev').style.cssText = tab==='busdev'
-    ? 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
-    : 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
+  document.getElementById('view-clients').style.display  = tab === 'clients'  ? 'flex' : 'none';
+  ['pipeline','busdev','clients'].forEach(t => {
+    const btn = document.getElementById('tab-'+t);
+    if (!btn) return;
+    btn.style.cssText = t===tab
+      ? 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
+      : 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
+  });
   if (tab === 'busdev') renderBD();
+  if (tab === 'clients') renderClients();
 }
 
 // ─── BUS DEV RENDER ───────────────────────────────────────────────────────────
@@ -970,8 +1186,195 @@ function saveBDModal(editId) {
   closeModal(); renderBD(); saveBusDev();
 }
 
+// ─── CLIENTS ──────────────────────────────────────────────────────────────────
+function renderClients() {
+  const q = (document.getElementById('cl-search')||{value:''}).value.toLowerCase();
+  const list = document.getElementById('cl-list');
+  const vis = clientsData.filter(c => !q || c.name.toLowerCase().includes(q) || c.country.toLowerCase().includes(q) || c.tags.toLowerCase().includes(q));
+
+  list.innerHTML = vis.length ? '' : '<div style="padding:16px;font-size:11px;color:#bbb">Aucun client</div>';
+  vis.forEach(c => {
+    const div = document.createElement('div');
+    div.style.cssText = `padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:12px;background:${c.id===selectedClientId?'#eef2ff':'transparent'}`;
+    div.onmouseenter = () => { if(c.id!==selectedClientId) div.style.background='#f5f5f5'; };
+    div.onmouseleave = () => { div.style.background=c.id===selectedClientId?'#eef2ff':'transparent'; };
+    div.innerHTML = `<div style="font-weight:600;color:#1a1a1a">${c.name}</div><div style="font-size:10px;color:#aaa">${c.country}${c.tags?' · '+c.tags:''}</div>`;
+    div.onclick = () => { selectedClientId = c.id; renderClients(); showClientDetail(c.id); };
+    list.appendChild(div);
+  });
+
+  if (selectedClientId) showClientDetail(selectedClientId);
+}
+
+function showClientDetail(cid) {
+  const c = clientsData.find(x=>x.id===cid);
+  if (!c) return;
+  // Find linked pipeline rows
+  const linked = projects.filter(p => p.company.toLowerCase().includes(c.name.toLowerCase()) || (c.mailid && p.mailid===c.mailid));
+  const detail = document.getElementById('cl-detail');
+  detail.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:4px">${c.name}</h2>
+        <div style="font-size:12px;color:#888">${c.country}${c.website?' · <a href="${c.website}" style="color:#2563eb">${c.website}</a>':''}</div>
+        ${c.tags?`<div style="margin-top:6px">${c.tags.split(',').map(t=>`<span style="display:inline-block;font-size:10px;padding:1px 8px;border-radius:20px;background:#f0f0f0;color:#555;margin-right:4px">${t.trim()}</span>`).join('')}</div>`:''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openClientModal(${c.id})" style="font-size:11px;padding:5px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444">✎ Modifier</button>
+        <button onclick="deleteClient(${c.id})" style="font-size:11px;padding:5px 10px;border:1px solid #fca5a5;border-radius:6px;background:#fff;cursor:pointer;color:#ef4444">Supprimer</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="background:#f9f9f9;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Contacts</div>
+        ${c.contacts.length ? c.contacts.map((ct,i)=>`
+          <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #eee">
+            <div style="font-weight:600;font-size:12px;color:#1a1a1a">${ct.name||'—'}</div>
+            <div style="font-size:11px;color:#888">${ct.title||''}</div>
+            ${ct.email?`<div style="font-size:11px;color:#2563eb;margin-top:2px">✉ ${ct.email}</div>`:''}
+            ${ct.phone?`<div style="font-size:11px;color:#555;margin-top:2px">📞 ${ct.phone}</div>`:''}
+            <button onclick="removeContact(${c.id},${i})" style="font-size:9px;color:#aaa;background:none;border:none;cursor:pointer;margin-top:2px">supprimer</button>
+          </div>`).join('') : '<div style="font-size:11px;color:#bbb">Aucun contact</div>'}
+        <button onclick="addContactModal(${c.id})" style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#444;margin-top:6px">+ Contact</button>
+      </div>
+      <div style="background:#f9f9f9;border-radius:8px;padding:14px">
+        <div style="font-size:10px;font-weight:600;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Infos</div>
+        ${c.emails?`<div style="font-size:11px;margin-bottom:6px"><span style="color:#888">Emails :</span> ${c.emails}</div>`:''}
+        ${c.phones?`<div style="font-size:11px;margin-bottom:6px"><span style="color:#888">Tél :</span> ${c.phones}</div>`:''}
+        ${c.mailid?`<div style="font-size:11px;margin-bottom:6px"><span style="color:#888">Mail ID :</span> <span style="color:#2563eb;cursor:pointer" onclick="copyMailId('${c.mailid}')">${c.mailid}</span></div>`:''}
+      </div>
+    </div>
+
+    ${c.notes?`
+    <div style="background:#fffbf0;border:1px solid #fde68a;border-radius:8px;padding:14px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:600;color:#92400e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Notes</div>
+      <div style="font-size:12px;color:#555;white-space:pre-wrap">${c.notes}</div>
+    </div>`:''}
+
+    ${linked.length?`
+    <div>
+      <div style="font-size:10px;font-weight:600;color:#888;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">Lignes Pipeline liées (${linked.length})</div>
+      ${linked.map(p=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:#f9f9f9;border-radius:6px;margin-bottom:5px;font-size:11px">
+          <span class="sol">${p.solution||'—'}</span>
+          <span class="ph">${p.phase||'—'}</span>
+          <span style="color:#888">${p.desc||''}</span>
+          <span style="color:#2563eb;cursor:pointer;margin-left:auto" onclick="copyMailId('${p.mailid}')">${p.mailid}</span>
+        </div>`).join('')}
+    </div>`:''}
+  `;
+}
+
+function openClientModal(editId) {
+  const c = editId ? clientsData.find(x=>x.id===editId) : null;
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="width:380px">
+        <h3>${c?'Modifier client':'+ Nouveau client'}</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="grid-column:1/-1"><label>Nom *</label><input id="cl-name" value="${c?c.name:''}" placeholder="ex: Mauritius Telecom"></div>
+          <div><label>Pays</label><input id="cl-country" value="${c?c.country:''}" placeholder="ex: Mauritius"></div>
+          <div><label>Site web</label><input id="cl-web" value="${c?c.website:''}" placeholder="https://..."></div>
+          <div><label>Téléphones</label><input id="cl-phones" value="${c?c.phones:''}" placeholder="+230 xxx xxx"></div>
+          <div><label>Emails généraux</label><input id="cl-emails" value="${c?c.emails:''}" placeholder="info@..."></div>
+          <div><label>Mail ID (Outlook)</label><input id="cl-mailid" value="${c?c.mailid:''}" placeholder="ex: 240802OP"></div>
+          <div><label>Tags</label><input id="cl-tags" value="${c?c.tags:''}" placeholder="opérateur, fibre..."></div>
+          <div style="grid-column:1/-1"><label>Notes</label><textarea id="cl-notes" style="height:70px;resize:vertical">${c?c.notes:''}</textarea></div>
+        </div>
+        <div class="mbtns">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveClientModal(${editId||'null'})">${c?'Enregistrer':'Créer'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('cl-name').focus();
+}
+
+function saveClientModal(editId) {
+  const name = document.getElementById('cl-name').value.trim();
+  if (!name) { document.getElementById('cl-name').style.borderColor='#e00'; return; }
+  const data = {
+    name, country:document.getElementById('cl-country').value.trim(),
+    website:document.getElementById('cl-web').value.trim(),
+    phones:document.getElementById('cl-phones').value.trim(),
+    emails:document.getElementById('cl-emails').value.trim(),
+    mailid:document.getElementById('cl-mailid').value.trim(),
+    tags:document.getElementById('cl-tags').value.trim(),
+    notes:document.getElementById('cl-notes').value.trim(),
+  };
+  if (editId) {
+    const c = clientsData.find(x=>x.id===editId);
+    if (c) Object.assign(c, data);
+    selectedClientId = editId;
+  } else {
+    const newC = { id:clid++, contacts:[], ...data };
+    clientsData.push(newC);
+    selectedClientId = newC.id;
+  }
+  closeModal(); renderClients(); saveClients();
+}
+
+function addContactModal(cid) {
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="width:320px">
+        <h3>+ Contact</h3>
+        <div><label>Nom</label><input id="ct-name" placeholder="ex: Henri Martin"></div>
+        <div><label>Titre</label><input id="ct-title" placeholder="ex: CTO"></div>
+        <div><label>Email</label><input id="ct-email" placeholder="h.martin@..."></div>
+        <div><label>Téléphone</label><input id="ct-phone" placeholder="+230 xxx xxx"></div>
+        <div class="mbtns">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveContact(${cid})">Ajouter</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('ct-name').focus();
+}
+
+function saveContact(cid) {
+  const c = clientsData.find(x=>x.id===cid);
+  if (!c) return;
+  c.contacts.push({
+    name:document.getElementById('ct-name').value.trim(),
+    title:document.getElementById('ct-title').value.trim(),
+    email:document.getElementById('ct-email').value.trim(),
+    phone:document.getElementById('ct-phone').value.trim()
+  });
+  closeModal(); renderClients(); saveClients();
+}
+
+function removeContact(cid, idx) {
+  const c = clientsData.find(x=>x.id===cid);
+  if (c) { c.contacts.splice(idx,1); renderClients(); saveClients(); }
+}
+
+function deleteClient(cid) {
+  if (!confirm('Supprimer ce client ?')) return;
+  clientsData = clientsData.filter(x=>x.id!==cid);
+  selectedClientId = null;
+  document.getElementById('cl-detail').innerHTML = '<div style="color:#bbb;font-size:13px;text-align:center;margin-top:60px">Sélectionne un client</div>';
+  renderClients(); saveClients();
+}
+
+function openClientView(company, mailid) {
+  // Find or create client and switch to clients tab
+  let c = clientsData.find(x=>x.name.toLowerCase()===company.toLowerCase());
+  if (!c) {
+    c = { id:clid++, name:company, country:'', website:'', contacts:[], phones:'', emails:'', mailid:mailid||'', tags:'', notes:'' };
+    clientsData.push(c);
+    saveClients();
+  }
+  selectedClientId = c.id;
+  switchTab('clients');
+}
+
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
-window.onload = () => { initGoogle(); if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js"); };
+window.onload = () => {
+  initGoogle();
+  if (!IS_ELECTRON && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+};
 </script>
 </body>
 </html>
