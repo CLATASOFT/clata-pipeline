@@ -182,6 +182,7 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     <select id="fOwn" onchange="render()"><option value="">Tous</option></select>
     <div class="sep"></div>
     <button id="btn-import" onclick="openImport()">Import XLS</button>
+    <button onclick="openNewProject()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600">+ Nouvelle ligne</button>
   </div>
 
   <div id="stats-bar"></div>
@@ -642,6 +643,69 @@ function openModal(pid) {
     </div>`;
   document.getElementById('mt').focus();
 }
+function openNewProject() {
+  const phases = [...new Set(projects.map(p=>p.phase).filter(Boolean))].sort();
+  const solutions = [...new Set(projects.map(p=>p.solution).filter(Boolean))].sort();
+  const agents = [...new Set(projects.map(p=>p.agent).filter(Boolean))].sort();
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="width:340px">
+        <h3>+ Nouvelle ligne</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>Société *</label><input id="np-company" placeholder="ex: MTN Ghana"></div>
+          <div><label>Pays</label><input id="np-country" placeholder="ex: Ghana"></div>
+          <div><label>Agent</label>
+            <input id="np-agent" list="np-agent-list" placeholder="ex: Niko">
+            <datalist id="np-agent-list">${agents.map(a=>`<option value="${a}">`).join('')}</datalist>
+          </div>
+          <div><label>Solution</label>
+            <input id="np-solution" list="np-sol-list" placeholder="ex: TARANA">
+            <datalist id="np-sol-list">${solutions.map(s=>`<option value="${s}">`).join('')}</datalist>
+          </div>
+          <div style="grid-column:1/-1"><label>Phase</label>
+            <input id="np-phase" list="np-phase-list" placeholder="ex: 3 RFQ">
+            <datalist id="np-phase-list">${phases.map(p=>`<option value="${p}">`).join('')}</datalist>
+          </div>
+          <div style="grid-column:1/-1"><label>Description</label><input id="np-desc" placeholder="Notes..."></div>
+          <div><label>Mail ID</label><input id="np-mailid" placeholder="ex: 260101AB"></div>
+          <div><label>Amount</label><input id="np-amount" placeholder="ex: 50k"></div>
+          <div><label>Target</label><input id="np-target" placeholder="ex: Q3"></div>
+        </div>
+        <div class="mbtns">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveNewProject()">Créer</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('np-company').focus();
+}
+
+function saveNewProject() {
+  const company = document.getElementById('np-company').value.trim();
+  if (!company) { document.getElementById('np-company').style.borderColor='#e00'; return; }
+  const maxId = projects.reduce((m,p) => Math.max(m,p.id), 0);
+  const newP = {
+    id: maxId + 1,
+    company,
+    country:  document.getElementById('np-country').value.trim(),
+    agent:    document.getElementById('np-agent').value.trim(),
+    solution: document.getElementById('np-solution').value.trim(),
+    phase:    document.getElementById('np-phase').value.trim(),
+    desc:     document.getElementById('np-desc').value.trim(),
+    mailid:   document.getElementById('np-mailid').value.trim(),
+    amount:   document.getElementById('np-amount').value.trim(),
+    target:   document.getElementById('np-target').value.trim(),
+    expanded: true,
+    tasks: []
+  };
+  projects.push(newP);
+  closeModal();
+  initFilters();
+  render();
+  showSync('loading', 'Sauvegarde...');
+  saveProjects(projects).then(() => showSync('ok', 'Sauvegardé ✓')).catch(() => showSync('err', 'Erreur save'));
+}
+
 function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
 function saveTask(pid) {
   const text = document.getElementById('mt').value.trim();
