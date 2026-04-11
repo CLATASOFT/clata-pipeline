@@ -897,6 +897,7 @@ function render() {
         <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
           <span>${p.company}</span>
           <button onclick="event.stopPropagation();openClientView('${p.company.replace(/'/g,"\\'")}','${p.mailid}')" title="Fiche client" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#888;flex-shrink:0">👤</button>
+          <button onclick="event.stopPropagation();openEditProject(${p.id})" title="Modifier" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#555;flex-shrink:0">✎</button>
         </div>
       </td>
       <td style="color:#888;font-size:10px">${p.country}</td>
@@ -909,7 +910,7 @@ function render() {
       <td style="font-size:10px;color:#aaa">${p.target}</td>
       <td style="font-size:10px;color:#aaa">${done}/${totalVisible}${p.tasks.filter(t=>t.archived).length>0&&!showArchived?` <span style="color:#f59e0b;font-size:9px">(+${p.tasks.filter(t=>t.archived).length}📦)</span>`:''}</td>
       <td colspan="2" style="font-size:10px">${!p.expanded&&vt.length?vt.slice(0,2).map(t=>`<span class="badge ${BCLS[t.status]}">${STS[t.status]}</span>`).join(' '):''}</td>
-      <td></td>`;
+      <td><button class="del-btn" onclick="event.stopPropagation();deleteProject(${p.id})" title="Supprimer">✕</button></td>`;
     tbody.appendChild(tr);
 
     if (p.expanded) {
@@ -932,9 +933,9 @@ function render() {
           <td><select class="isel" onchange="setSt(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
             ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${t.status===v?' selected':''}>${l}</option>`).join('')}
           </select></td>
-          <td><select class="isel" onchange="setOwn(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
-            ${owners.map(o=>`<option value="${o}"${t.owner===o?' selected':''}>${o}</option>`).join('')}
-          </select></td>
+          <td><input class="isel" list="own-dl-${p.id}-${t.id}" value="${t.owner||''}" onchange="setOwn(${p.id},${t.id},this.value)" onclick="event.stopPropagation()" style="width:80px">
+            <datalist id="own-dl-${p.id}-${t.id}">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
+          </td>
           <td><button class="del-btn" onclick="event.stopPropagation();delT(${p.id},${t.id})">✕</button></td>`;
         tr2.style.opacity = t.archived ? '0.55' : '1';
         tbody.appendChild(tr2);
@@ -1106,6 +1107,87 @@ function saveNewProject() {
 }
 
 function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
+
+function openEditProject(pid) {
+  const p = projects.find(x=>x.id===pid);
+  if (!p) return;
+  const phases    = [...new Set(projects.map(x=>x.phase).filter(Boolean))].sort();
+  const solutions = [...new Set(projects.map(x=>x.solution).filter(Boolean))].sort();
+  const agents    = [...new Set(projects.map(x=>x.agent).filter(Boolean))].sort();
+  const countries = [...new Set(projects.map(x=>x.country).filter(Boolean))].sort();
+  const companies = [...new Set(projects.map(x=>x.company).filter(Boolean))].sort();
+  const targets   = [...new Set(projects.map(x=>x.target).filter(Boolean))].sort();
+
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="width:360px;max-height:90vh;overflow-y:auto">
+        <h3>✎ Modifier — ${p.company}</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${editCombo('ep-company','Société *',companies,p.company,true)}
+          ${editCombo('ep-country','Pays',countries,p.country,false)}
+          ${editCombo('ep-agent','Agent',agents,p.agent,false)}
+          ${editCombo('ep-solution','Solution',solutions,p.solution,false)}
+          ${editCombo('ep-phase','Phase',phases,p.phase,true)}
+          <div style="grid-column:1/-1"><label>Description</label>
+            <input id="ep-desc" value="${(p.desc||'').replace(/"/g,'&quot;')}" style="width:100%">
+          </div>
+          <div><label>Mail ID</label>
+            <input id="ep-mailid" value="${p.mailid||''}" style="width:100%">
+          </div>
+          <div><label>Amount</label>
+            <input id="ep-amount" value="${p.amount||''}" style="width:100%">
+          </div>
+          <div><label>Target</label>
+            <input id="ep-target" list="ep-target-dl" value="${p.target||''}" style="width:100%">
+            <datalist id="ep-target-dl">${targets.map(t=>`<option value="${t}">`).join('')}</datalist>
+          </div>
+        </div>
+        <div class="mbtns" style="margin-top:8px">
+          <button onclick="deleteProject(${pid})" style="color:#ef4444;border-color:#fca5a5;margin-right:auto">Supprimer</button>
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveEditProject(${pid})">Enregistrer</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('ep-company').focus();
+}
+
+function editCombo(id, label, values, current, fullWidth) {
+  const opts = values.map(v=>`<option value="${v}">`).join('');
+  return `<div${fullWidth?' style="grid-column:1/-1"':''}><label>${label}</label>
+    <input id="${id}" list="${id}-dl" value="${(current||'').replace(/"/g,'&quot;')}" style="width:100%">
+    <datalist id="${id}-dl">${opts}</datalist>
+  </div>`;
+}
+
+function saveEditProject(pid) {
+  const p = projects.find(x=>x.id===pid);
+  if (!p) return;
+  const company = document.getElementById('ep-company').value.trim();
+  if (!company) { document.getElementById('ep-company').style.borderColor='#e00'; return; }
+  p.company  = company;
+  p.country  = document.getElementById('ep-country').value.trim();
+  p.agent    = document.getElementById('ep-agent').value.trim();
+  p.solution = document.getElementById('ep-solution').value.trim();
+  p.phase    = document.getElementById('ep-phase').value.trim();
+  p.desc     = document.getElementById('ep-desc').value.trim();
+  p.mailid   = document.getElementById('ep-mailid').value.trim();
+  p.amount   = document.getElementById('ep-amount').value.trim();
+  p.target   = document.getElementById('ep-target').value.trim();
+  closeModal();
+  initFilters();
+  render();
+  showSync('loading','Sauvegarde...');
+  saveProjects(projects).then(()=>showSync('ok','Sauvegardé ✓')).catch(()=>showSync('err','Erreur save'));
+}
+
+function deleteProject(pid) {
+  if (!confirm('Supprimer cette ligne définitivement ?')) return;
+  projects = projects.filter(x=>x.id!==pid);
+  render();
+  showSync('loading','Sauvegarde...');
+  Promise.all([saveProjects(projects), saveTasks()]).then(()=>showSync('ok','Supprimé ✓')).catch(()=>showSync('err','Erreur'));
+}
 
 function saveTask(pid) {
   const text = document.getElementById('mt').value.trim();
