@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>CLATA Pipeline</title>
+<link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:12px;background:#f4f4f4;color:#222;min-height:100vh}
+
+/* AUTH */
+#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px;padding:20px}
+#auth-screen h1{font-size:22px;font-weight:700;color:#1a1a1a}
+#auth-screen p{font-size:13px;color:#666;text-align:center;max-width:300px}
+#btn-login{display:flex;align-items:center;gap:10px;padding:12px 24px;background:#fff;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+#btn-login:hover{background:#f9f9f9}
+#btn-login svg{width:20px;height:20px}
+#auth-screen .logo{font-size:32px;font-weight:800;letter-spacing:-1px;color:#1a1a1a}
+#auth-screen .logo span{color:#888}
+
+/* APP */
+#main-app{display:none;flex-direction:column;height:100vh}
+#topbar{background:#1a1a1a;color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#topbar h1{font-size:14px;font-weight:600;letter-spacing:0.3px}
+#topbar .right{display:flex;align-items:center;gap:10px}
+#topbar .user{font-size:11px;color:#aaa}
+#btn-logout{font-size:11px;padding:3px 8px;background:transparent;border:1px solid #444;border-radius:4px;color:#aaa;cursor:pointer}
+#btn-logout:hover{border-color:#888;color:#fff}
+#sync-status{font-size:10px;color:#aaa;display:flex;align-items:center;gap:4px}
+#sync-dot{width:6px;height:6px;border-radius:50%;background:#888}
+#sync-dot.ok{background:#4ade80}
+#sync-dot.err{background:#f87171}
+#sync-dot.loading{background:#facc15;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* TOOLBAR */
+#toolbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:8px 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+#toolbar input{font-size:11px;padding:5px 9px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222;width:140px}
+#toolbar input:focus{outline:none;border-color:#999;background:#fff}
+#toolbar select{font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222}
+#toolbar select:focus{outline:none;border-color:#999}
+#toolbar label{font-size:10px;color:#888;white-space:nowrap}
+#toolbar .sep{width:1px;height:18px;background:#e5e5e5;margin:0 2px}
+#btn-import{font-size:11px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444}
+#btn-import:hover{background:#f0f0f0}
+
+/* STATS */
+#stats-bar{background:#fff;border-bottom:1px solid #e5e5e5;padding:6px 12px;display:flex;gap:8px;flex-shrink:0;overflow-x:auto}
+.sc{background:#f9f9f9;border:1px solid #ebebeb;border-radius:6px;padding:5px 10px;white-space:nowrap;text-align:center;min-width:75px}
+.sc .n{font-size:16px;font-weight:700;color:#1a1a1a}
+.sc .l{font-size:9px;color:#999;margin-top:1px}
+
+/* TABLE */
+#table-wrap{flex:1;overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:980px}
+th{text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;white-space:nowrap;background:#fafafa;position:sticky;top:0;z-index:2}
+.proj-row td{padding:6px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle;background:#fafafa;cursor:pointer;transition:background 0.1s}
+.proj-row:hover td{background:#eef2ff}
+.task-row td{padding:4px 8px;border-bottom:1px solid #f7f7f7;vertical-align:middle;background:#fff}
+.task-row:hover td{background:#f9f9f9}
+.pname{font-weight:700;color:#1a1a1a;font-size:11px}
+.sol{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:#ede9ff;color:#4338ca;white-space:nowrap}
+.ph{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;background:#f0f0f0;border:1px solid #ddd;color:#555;white-space:nowrap}
+.amt{font-size:10px;color:#166534;font-weight:600}
+.desc-cell{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#777;font-size:10px}
+.mid-cell{color:#bbb;font-size:10px}
+.badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;white-space:nowrap;font-weight:500}
+.b-todo{background:#dbeafe;color:#1e40af}
+.b-inp{background:#fef3c7;color:#92400e}
+.b-done{background:#d1fae5;color:#065f46}
+.b-blk{background:#fee2e2;color:#991b1b}
+.isel{font-size:10px;padding:2px 4px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#222}
+.add-t{font-size:10px;color:#bbb;background:none;border:none;cursor:pointer;padding:2px 0}
+.add-t:hover{color:#1a1a1a}
+.del-btn{background:none;border:none;cursor:pointer;color:#ddd;font-size:11px;opacity:0;padding:0 2px}
+tr:hover .del-btn{opacity:1}
+.exp{width:16px;color:#bbb;font-size:11px;user-select:none;text-align:center}
+
+/* MODAL */
+#modal-area .ov{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:#fff;border-radius:12px;padding:20px;width:300px;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.15)}
+.modal h3{font-size:14px;font-weight:700;color:#1a1a1a}
+.modal label{font-size:10px;color:#888;margin-bottom:2px;display:block}
+.modal input,.modal select,.modal textarea{width:100%;font-size:12px;padding:6px 9px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222}
+.modal input:focus,.modal select:focus,.modal textarea:focus{outline:none;border-color:#999;background:#fff}
+.modal textarea{resize:vertical;height:55px}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.mbtns button{font-size:11px;padding:6px 14px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#222;cursor:pointer}
+.mbtns button:hover{background:#f0f0f0}
+.mbtns button.pri{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.mbtns button.pri:hover{background:#333}
+
+/* IMPORT MODAL */
+#import-modal .ov{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+#import-modal .modal{width:340px}
+#import-modal input[type=file]{font-size:11px}
+#import-modal .hint{font-size:10px;color:#aaa;line-height:1.5}
+
+/* MOBILE */
+@media(max-width:600px){
+  #toolbar{gap:4px}
+  #toolbar input{width:110px}
+  .sc{min-width:60px}
+  .sc .n{font-size:14px}
+}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:12px}
+#loading .logo{font-size:28px;font-weight:800;color:#1a1a1a;letter-spacing:-1px}
+#loading .logo span{color:#888}
+#loading p{font-size:12px;color:#aaa}
+.spinner{width:24px;height:24px;border:2px solid #eee;border-top-color:#1a1a1a;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="logo">CLATA<span>.</span></div>
+  <div class="spinner"></div>
+  <p>Chargement...</p>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" style="display:none">
+  <div class="logo">CLATA<span>.</span></div>
+  <h1>Pipeline Manager</h1>
+  <p>Connecte-toi avec Google pour accéder à tes données sur Google Drive.</p>
+  <button id="btn-login" onclick="signIn()">
+    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Se connecter avec Google
+  </button>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+  <div id="topbar">
+    <h1>CLATA Pipeline</h1>
+    <div class="right">
+      <div id="sync-status"><div id="sync-dot"></div><span id="sync-label">—</span></div>
+      <span class="user" id="user-name"></span>
+      <button id="btn-logout" onclick="signOut()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div id="toolbar">
+    <input id="search" placeholder="Rechercher..." oninput="render()">
+    <div class="sep"></div>
+    <label>Phase:</label>
+    <select id="fPhase" onchange="render()"><option value="">Toutes</option></select>
+    <label>Solution:</label>
+    <select id="fSol" onchange="render()"><option value="">Toutes</option></select>
+    <label>Agent:</label>
+    <select id="fAgent" onchange="render()"><option value="">Tous</option></select>
+    <div class="sep"></div>
+    <label>Task:</label>
+    <select id="fSt" onchange="render()">
+      <option value="">Tous</option>
+      <option value="todo">To Do</option>
+      <option value="inp">In Progress</option>
+      <option value="done">Done</option>
+      <option value="blk">Blocked</option>
+    </select>
+    <label>Owner:</label>
+    <select id="fOwn" onchange="render()"><option value="">Tous</option></select>
+    <div class="sep"></div>
+    <button id="btn-import" onclick="openImport()">Import XLS</button>
+  </div>
+
+  <div id="stats-bar"></div>
+
+  <div id="table-wrap">
+    <table>
+      <thead><tr>
+        <th style="width:16px"></th>
+        <th>Société</th>
+        <th style="width:80px">Pays</th>
+        <th style="width:68px">Agent</th>
+        <th style="width:68px">Solution</th>
+        <th style="width:90px">Phase</th>
+        <th style="width:140px">Description</th>
+        <th style="width:78px">Mail ID</th>
+        <th style="width:44px">Amount</th>
+        <th style="width:38px">Target</th>
+        <th style="width:50px">Tâches</th>
+        <th style="width:100px">Status</th>
+        <th style="width:75px">Owner</th>
+        <th style="width:22px"></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="modal-area"></div>
+<div id="import-modal"></div>
+
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<!-- SheetJS for XLS import -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// REMPLACE CES VALEURS après setup Google Cloud
+const CLIENT_ID = '419473633385-f31vk63psdq36kqkltm8u1qpucc11cmp.apps.googleusercontent.com';
+const SPREADSHEET_ID = '1q-vgqDONkUd-WyWu35jQjiSZwKcPThAaTpSgeOWzotk'; // ID du Google Sheet des tâches
+const TASKS_SHEET = 'Tasks';   // nom de l'onglet tâches
+const PROJ_SHEET  = 'Projects'; // nom de l'onglet projets (pipeline)
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const STS   = {todo:'To Do', inp:'In Progress', done:'Done', blk:'Blocked'};
+const BCLS  = {todo:'b-todo', inp:'b-inp', done:'b-done', blk:'b-blk'};
+const OWNERS_DEF = ['Niko','Barlen','Friedrich','Leena','Carl','Tchini','Barlen/Amanda'];
+
+let projects = [];
+let tokenClient;
+let accessToken = null;
+let tid = 1;
+let syncTimeout = null;
+
+// ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
+function initGoogle() {
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+    });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: async (resp) => {
+        if (resp.error) { showSync('err', 'Auth error'); return; }
+        accessToken = resp.access_token;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+        await loadAll();
+      }
+    });
+    // Try silent login
+    const saved = sessionStorage.getItem('clata_token');
+    if (saved) {
+      accessToken = saved;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main-app').style.display = 'flex';
+      await loadAll();
+    } else {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+  });
+}
+function signIn() {
+  tokenClient.requestAccessToken({prompt: 'consent'});
+}
+function signOut() {
+  google.accounts.oauth2.revoke(accessToken, () => {
+    accessToken = null;
+    sessionStorage.removeItem('clata_token');
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    projects = [];
+  });
+}
+
+// ─── SYNC STATUS ──────────────────────────────────────────────────────────────
+function showSync(state, label) {
+  document.getElementById('sync-dot').className = state;
+  document.getElementById('sync-label').textContent = label;
+}
+
+// ─── SHEETS API ───────────────────────────────────────────────────────────────
+async function sheetsGet(range) {
+  const r = await gapi.client.sheets.spreadsheets.values.get({
+    spreadsheetId: SPREADSHEET_ID,
+    range
+  });
+  return r.result.values || [];
+}
+async function sheetsUpdate(range, values) {
+  await gapi.client.sheets.spreadsheets.values.update({
+    spreadsheetId: SPREADSHEET_ID,
+    range,
+    valueInputOption: 'RAW',
+    resource: { values }
+  });
+}
+async function sheetsClear(range) {
+  await gapi.client.sheets.spreadsheets.values.clear({
+    spreadsheetId: SPREADSHEET_ID,
+    range
+  });
+}
+async function ensureSheets() {
+  // Create sheets if they don't exist
+  const meta = await gapi.client.sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+  const names = meta.result.sheets.map(s => s.properties.title);
+  const toAdd = [];
+  if (!names.includes(TASKS_SHEET)) toAdd.push({ addSheet: { properties: { title: TASKS_SHEET } } });
+  if (!names.includes(PROJ_SHEET))  toAdd.push({ addSheet: { properties: { title: PROJ_SHEET } } });
+  if (toAdd.length) {
+    await gapi.client.sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID,
+      resource: { requests: toAdd }
+    });
+  }
+}
+
+// ─── LOAD ─────────────────────────────────────────────────────────────────────
+async function loadAll() {
+  showSync('loading', 'Chargement...');
+  try {
+    await ensureSheets();
+    await loadProjects();
+    await loadTasks();
+    initFilters();
+    render();
+    showSync('ok', 'Synchronisé');
+  } catch(e) {
+    console.error(e);
+    showSync('err', 'Erreur sync');
+  }
+}
+
+async function loadProjects() {
+  const rows = await sheetsGet(`${PROJ_SHEET}!A2:J1000`);
+  if (!rows.length) return;
+  projects = rows.filter(r => r[1]).map((r, i) => ({
+    id: i + 1,
+    country:  r[0]||'', company: r[1]||'', agent:   r[2]||'',
+    solution: r[3]||'', phase:   r[4]||'', desc:    r[5]||'',
+    mailid:   r[6]||'', amount:  r[7]||'', target:  r[8]||'',
+    expanded: false, tasks: []
+  }));
+}
+
+async function loadTasks() {
+  const rows = await sheetsGet(`${TASKS_SHEET}!A2:F1000`);
+  const taskMap = {};
+  let maxId = 0;
+  rows.forEach(r => {
+    if (!r[0]) return;
+    const projId = parseInt(r[0]);
+    const t = { id: parseInt(r[1]), text: r[2]||'', status: r[3]||'todo', owner: r[4]||'Niko', note: r[5]||'' };
+    if (!taskMap[projId]) taskMap[projId] = [];
+    taskMap[projId].push(t);
+    if (t.id > maxId) maxId = t.id;
+  });
+  tid = maxId + 1;
+  projects.forEach(p => { p.tasks = taskMap[p.id] || []; });
+}
+
+// ─── SAVE ─────────────────────────────────────────────────────────────────────
+function scheduleSave() {
+  showSync('loading', 'Sauvegarde...');
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(saveTasks, 1500);
+}
+
+async function saveTasks() {
+  try {
+    const rows = [['proj_id','task_id','text','status','owner','note']];
+    projects.forEach(p => {
+      p.tasks.forEach(t => {
+        rows.push([p.id, t.id, t.text, t.status, t.owner, t.note||'']);
+      });
+    });
+    await sheetsClear(`${TASKS_SHEET}!A1:F1000`);
+    await sheetsUpdate(`${TASKS_SHEET}!A1`, rows);
+    showSync('ok', 'Sauvegardé ✓');
+  } catch(e) {
+    console.error(e);
+    showSync('err', 'Erreur save');
+  }
+}
+
+async function saveProjects(data) {
+  const rows = [['Country','Company','Agent','Solution','Phase','Description','mail ID','Amount','Target']];
+  data.forEach(r => rows.push([r.country,r.company,r.agent,r.solution,r.phase,r.desc,r.mailid,r.amount,r.target]));
+  await sheetsClear(`${PROJ_SHEET}!A1:J1000`);
+  await sheetsUpdate(`${PROJ_SHEET}!A1`, rows);
+}
+
+// ─── XLS IMPORT ───────────────────────────────────────────────────────────────
+function openImport() {
+  document.getElementById('import-modal').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeImport()">
+      <div class="modal">
+        <h3>Importer pipeline_test.xlsx</h3>
+        <p class="hint">Sélectionne ton fichier Excel. Les projets seront sauvegardés sur Google Drive et les tâches existantes conservées.</p>
+        <div><label>Fichier XLS/XLSX</label><input type="file" id="xls-file" accept=".xlsx,.xls"></div>
+        <div class="mbtns">
+          <button onclick="closeImport()">Annuler</button>
+          <button class="pri" onclick="doImport()">Importer</button>
+        </div>
+      </div>
+    </div>`;
+}
+function closeImport() { document.getElementById('import-modal').innerHTML = ''; }
+
+async function doImport() {
+  const file = document.getElementById('xls-file').files[0];
+  if (!file) return;
+  showSync('loading', 'Import...');
+  closeImport();
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const wb = XLSX.read(e.target.result, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+    const oldTasks = {};
+    projects.forEach(p => { if(p.tasks.length) oldTasks[p.company+'|'+p.solution] = p.tasks; });
+    const newProjects = rows.filter(r => r['Company']).map((r, i) => {
+      const key = String(r['Company']).trim() + '|' + String(r['Solution']||'').trim();
+      return {
+        id: i+1,
+        country:  String(r['Country']||'').trim(),
+        company:  String(r['Company']||'').trim(),
+        agent:    String(r['Agent']||'').trim(),
+        solution: String(r['Solution']||'').trim(),
+        phase:    String(r['Phase']||'').trim(),
+        desc:     String(r['Description']||'').trim(),
+        mailid:   String(r['mail ID']||'').trim(),
+        amount:   String(r['Amount']||'').trim(),
+        target:   String(r['Target']||'').trim(),
+        expanded: false,
+        tasks:    oldTasks[key] || []
+      };
+    });
+    projects = newProjects;
+    try {
+      await saveProjects(projects);
+      await saveTasks();
+      initFilters();
+      render();
+      showSync('ok', `${projects.length} projets importés`);
+    } catch(e) { showSync('err', 'Erreur import'); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── FILTERS ──────────────────────────────────────────────────────────────────
+function uniq(arr) { return [...new Set(arr.filter(Boolean))].sort(); }
+function initFilters() {
+  const build = (id, vals, def) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = `<option value="">${def}</option>` + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+  };
+  build('fPhase', uniq(projects.map(p=>p.phase)), 'Toutes');
+  build('fSol',   uniq(projects.map(p=>p.solution)), 'Toutes');
+  build('fAgent', uniq(projects.map(p=>p.agent)), 'Tous');
+}
+function updateOwners() {
+  const set = new Set(OWNERS_DEF);
+  projects.forEach(p => p.tasks.forEach(t => { if(t.owner) set.add(t.owner); }));
+  const sel = document.getElementById('fOwn'); const cur = sel.value;
+  sel.innerHTML = '<option value="">Tous</option>' + [...set].sort().map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
+}
+function getVisible() {
+  const q   = document.getElementById('search').value.toLowerCase();
+  const fp  = document.getElementById('fPhase').value;
+  const fs  = document.getElementById('fSol').value;
+  const fa  = document.getElementById('fAgent').value;
+  const fst = document.getElementById('fSt').value;
+  const fo  = document.getElementById('fOwn').value;
+  return projects.filter(p => {
+    if (fp && p.phase !== fp) return false;
+    if (fs && p.solution !== fs) return false;
+    if (fa && p.agent !== fa) return false;
+    if (q && ![p.company,p.country,p.solution,p.desc,p.mailid].join(' ').toLowerCase().includes(q)) return false;
+    if (fst || fo) {
+      const mt = p.tasks.filter(t => (!fst||t.status===fst) && (!fo||t.owner===fo));
+      if (!mt.length) return false;
+    }
+    return true;
+  });
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function updateStats(vis) {
+  const at = projects.flatMap(p => p.tasks);
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="sc"><div class="n">${vis.length}</div><div class="l">Projets</div></div>
+    <div class="sc"><div class="n">${projects.filter(p=>p.phase==='5 Push PO'||p.phase==='6 Push Payment').length}</div><div class="l">Push PO/Pay</div></div>
+    <div class="sc"><div class="n">${at.filter(t=>t.status==='inp').length}</div><div class="l">In Progress</div></div>
+    <div class="sc"><div class="n">${at.filter(t=>t.status==='blk').length}</div><div class="l">Bloquées</div></div>
+    <div class="sc"><div class="n">${at.filter(t=>t.status==='done').length}/${at.length}</div><div class="l">Done/Total</div></div>
+  `;
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  updateOwners();
+  const fst = document.getElementById('fSt').value;
+  const fo  = document.getElementById('fOwn').value;
+  const vis = getVisible();
+  updateStats(vis);
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  const owners = [...new Set([...OWNERS_DEF, ...projects.flatMap(p=>p.tasks.map(t=>t.owner)).filter(Boolean)])].sort();
+
+  vis.forEach(p => {
+    const vt   = p.tasks.filter(t => (!fst||t.status===fst) && (!fo||t.owner===fo));
+    const done = p.tasks.filter(t => t.status==='done').length;
+    const tr   = document.createElement('tr'); tr.className = 'proj-row';
+    tr.onclick = () => { p.expanded = !p.expanded; render(); };
+    tr.innerHTML = `
+      <td class="exp">${p.expanded?'▾':'▸'}</td>
+      <td class="pname">${p.company}</td>
+      <td style="color:#888;font-size:10px">${p.country}</td>
+      <td style="color:#888;font-size:10px">${p.agent}</td>
+      <td><span class="sol">${p.solution||'—'}</span></td>
+      <td><span class="ph">${p.phase||'—'}</span></td>
+      <td class="desc-cell" title="${p.desc}">${p.desc}</td>
+      <td class="mid-cell">${p.mailid}</td>
+      <td class="amt">${p.amount}</td>
+      <td style="font-size:10px;color:#aaa">${p.target}</td>
+      <td style="font-size:10px;color:#aaa">${done}/${p.tasks.length}</td>
+      <td colspan="2" style="font-size:10px">${!p.expanded&&p.tasks.length?p.tasks.slice(0,2).map(t=>`<span class="badge ${BCLS[t.status]}">${STS[t.status]}</span>`).join(' '):''}</td>
+      <td></td>`;
+    tbody.appendChild(tr);
+
+    if (p.expanded) {
+      const tasksToShow = (fst||fo) ? vt : p.tasks;
+      tasksToShow.forEach(t => {
+        const tr2 = document.createElement('tr'); tr2.className = 'task-row';
+        tr2.innerHTML = `
+          <td></td>
+          <td colspan="9" style="color:#333;font-size:11px">${t.text}${t.note?`<span style="color:#bbb;font-size:10px;margin-left:6px">${t.note}</span>`:''}</td>
+          <td></td>
+          <td><select class="isel" onchange="setSt(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
+            ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${t.status===v?' selected':''}>${l}</option>`).join('')}
+          </select></td>
+          <td><select class="isel" onchange="setOwn(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
+            ${owners.map(o=>`<option value="${o}"${t.owner===o?' selected':''}>${o}</option>`).join('')}
+          </select></td>
+          <td><button class="del-btn" onclick="event.stopPropagation();delT(${p.id},${t.id})">✕</button></td>`;
+        tbody.appendChild(tr2);
+      });
+      const ar = document.createElement('tr'); ar.className = 'task-row';
+      ar.innerHTML = `<td></td><td colspan="13"><button class="add-t" onclick="event.stopPropagation();openModal(${p.id})">+ tâche</button></td>`;
+      tbody.appendChild(ar);
+    }
+  });
+}
+
+// ─── TASK ACTIONS ─────────────────────────────────────────────────────────────
+function setSt(pid, tid, v)  { const t = getTask(pid,tid); if(t){t.status=v; render(); scheduleSave();} }
+function setOwn(pid, tid, v) { const t = getTask(pid,tid); if(t){t.owner=v;  render(); scheduleSave();} }
+function getTask(pid, tid)   { const p = projects.find(x=>x.id===pid); return p&&p.tasks.find(x=>x.id===tid); }
+function delT(pid, tid) {
+  const p = projects.find(x=>x.id===pid);
+  if (p) { p.tasks = p.tasks.filter(x=>x.id!==tid); render(); scheduleSave(); }
+}
+
+// ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
+function openModal(pid) {
+  const p = projects.find(x=>x.id===pid);
+  const owners = [...new Set([...OWNERS_DEF,...projects.flatMap(px=>px.tasks.map(t=>t.owner)).filter(Boolean)])].sort();
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <h3>+ Tâche — ${p.company}</h3>
+        <div><label>Description</label><input id="mt" placeholder="Ex: Envoyer offre Ceragon"></div>
+        <div><label>Note (optionnel)</label><textarea id="mn" placeholder="Détails..."></textarea></div>
+        <div><label>Status</label><select id="ms">${Object.entries(STS).map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></div>
+        <div><label>Owner</label><select id="mo">${owners.map(o=>`<option>${o}</option>`).join('')}</select></div>
+        <div class="mbtns">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveTask(${pid})">Ajouter</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('mt').focus();
+}
+function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
+function saveTask(pid) {
+  const text = document.getElementById('mt').value.trim();
+  if (!text) return;
+  const p = projects.find(x=>x.id===pid); if(!p) return;
+  p.tasks.push({ id: tid++, text, note: document.getElementById('mn').value.trim(), status: document.getElementById('ms').value, owner: document.getElementById('mo').value });
+  p.expanded = true;
+  closeModal(); render(); scheduleSave();
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal(); closeImport(); } });
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+window.onload = () => { initGoogle(); if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js"); };
+</script>
+</body>
+</html>
