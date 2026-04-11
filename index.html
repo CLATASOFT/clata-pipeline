@@ -156,8 +156,15 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     <input id="search" placeholder="Rechercher..." oninput="render()">
     <div class="sep"></div>
     <label>Phase:</label>
-    <select id="fPhase" multiple onchange="render()" style="height:28px;min-width:110px;font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9" title="Ctrl+clic pour sélection multiple"></select>
-    <button onclick="document.getElementById('fPhase').selectedIndex=-1;render()" style="font-size:10px;padding:3px 6px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#888" title="Effacer filtre phase">✕</button>
+    <div id="phase-dropdown" style="position:relative;display:inline-block">
+      <button id="phase-btn" onclick="togglePhaseDD(event)" style="font-size:11px;padding:5px 8px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;cursor:pointer;color:#222;min-width:110px;text-align:left">Toutes ▾</button>
+      <div id="phase-dd" style="display:none;position:absolute;top:100%;left:0;z-index:100;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:6px 0;min-width:160px;max-height:300px;overflow-y:auto" onclick="event.stopPropagation()">
+        <div style="padding:4px 10px;border-bottom:1px solid #f0f0f0;margin-bottom:2px">
+          <button onclick="clearPhases()" style="font-size:10px;color:#888;background:none;border:none;cursor:pointer;padding:0">Tout décocher</button>
+        </div>
+        <div id="phase-checks"></div>
+      </div>
+    </div>
     <label>Solution:</label>
     <select id="fSol" onchange="render()"><option value="">Toutes</option></select>
     <label>Agent:</label>
@@ -460,12 +467,32 @@ function initFilters() {
     const sel = document.getElementById(id);
     sel.innerHTML = `<option value="">${def}</option>` + vals.map(v => `<option value="${v}">${v}</option>`).join('');
   };
-  // Phase: multi-select, no empty option
-  const phSel = document.getElementById('fPhase');
-  phSel.innerHTML = uniq(projects.map(p=>p.phase)).map(v=>`<option value="${v}">${v}</option>`).join('');
+  // Phase: checkbox dropdown
+  const phases = uniq(projects.map(p=>p.phase));
+  document.getElementById('phase-checks').innerHTML = phases.map(ph => `
+    <label style="display:flex;align-items:center;gap:7px;padding:4px 10px;cursor:pointer;font-size:11px;color:#222" onmouseenter="this.style.background='#f5f5f5'" onmouseleave="this.style.background=''">
+      <input type="checkbox" value="${ph}" onchange="onPhaseCheck()" style="cursor:pointer;accent-color:#1a1a1a"> ${ph}
+    </label>`).join('');
   build('fSol',   uniq(projects.map(p=>p.solution)), 'Toutes');
   build('fAgent', uniq(projects.map(p=>p.agent)), 'Tous');
 }
+function togglePhaseDD(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('phase-dd');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+function onPhaseCheck() {
+  const checked = getSelectedPhases();
+  const btn = document.getElementById('phase-btn');
+  btn.textContent = checked.length === 0 ? 'Toutes ▾' : checked.length === 1 ? checked[0] + ' ▾' : `${checked.length} phases ▾`;
+  render();
+}
+function clearPhases() {
+  document.querySelectorAll('#phase-checks input').forEach(cb => cb.checked = false);
+  document.getElementById('phase-btn').textContent = 'Toutes ▾';
+  render();
+}
+document.addEventListener('click', () => { const dd = document.getElementById('phase-dd'); if(dd) dd.style.display = 'none'; });
 function updateOwners() {
   const set = new Set(OWNERS_DEF);
   projects.forEach(p => p.tasks.forEach(t => { if(t.owner) set.add(t.owner); }));
@@ -473,8 +500,7 @@ function updateOwners() {
   sel.innerHTML = '<option value="">Tous</option>' + [...set].sort().map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
 }
 function getSelectedPhases() {
-  const sel = document.getElementById('fPhase');
-  return [...sel.selectedOptions].map(o=>o.value);
+  return [...document.querySelectorAll('#phase-checks input:checked')].map(cb => cb.value);
 }
 function getVisible() {
   const q   = document.getElementById('search').value.toLowerCase();
