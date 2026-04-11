@@ -78,6 +78,10 @@ th{text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e0;color:#888;fo
 .add-t:hover{color:#1a1a1a}
 .del-btn{background:none;border:none;cursor:pointer;color:#ddd;font-size:11px;opacity:0;padding:0 2px}
 tr:hover .del-btn{opacity:1}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:#333;background:#f0f0f0}
+th.sort-asc::after{content:' ▲';font-size:9px}
+th.sort-desc::after{content:' ▼';font-size:9px}
 .exp{width:16px;color:#bbb;font-size:11px;user-select:none;text-align:center}
 
 /* MODAL */
@@ -152,7 +156,8 @@ tr:hover .del-btn{opacity:1}
     <input id="search" placeholder="Rechercher..." oninput="render()">
     <div class="sep"></div>
     <label>Phase:</label>
-    <select id="fPhase" onchange="render()"><option value="">Toutes</option></select>
+    <select id="fPhase" multiple onchange="render()" style="height:28px;min-width:110px;font-size:11px;padding:2px 4px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9" title="Ctrl+clic pour sélection multiple"></select>
+    <button onclick="document.getElementById('fPhase').selectedIndex=-1;render()" style="font-size:10px;padding:3px 6px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#888" title="Effacer filtre phase">✕</button>
     <label>Solution:</label>
     <select id="fSol" onchange="render()"><option value="">Toutes</option></select>
     <label>Agent:</label>
@@ -162,7 +167,7 @@ tr:hover .del-btn{opacity:1}
     <select id="fSt" onchange="render()">
       <option value="">Tous</option>
       <option value="todo">To Do</option>
-      <option value="inp">In Progress</option>
+      <option value="inp">Waiting feedback</option>
       <option value="done">Done</option>
       <option value="blk">Blocked</option>
     </select>
@@ -176,16 +181,16 @@ tr:hover .del-btn{opacity:1}
 
   <div id="table-wrap">
     <table>
-      <thead><tr>
+      <thead id="thead"><tr>
         <th style="width:16px"></th>
-        <th>Société</th>
-        <th style="width:80px">Pays</th>
-        <th style="width:68px">Agent</th>
-        <th style="width:68px">Solution</th>
-        <th style="width:90px">Phase</th>
+        <th class="sortable" onclick="sortBy('company')">Société</th>
+        <th class="sortable" style="width:80px" onclick="sortBy('country')">Pays</th>
+        <th class="sortable" style="width:68px" onclick="sortBy('agent')">Agent</th>
+        <th class="sortable" style="width:68px" onclick="sortBy('solution')">Solution</th>
+        <th class="sortable" style="width:90px" onclick="sortBy('phase')">Phase</th>
         <th style="width:140px">Description</th>
         <th style="width:78px">Mail ID</th>
-        <th style="width:44px">Amount</th>
+        <th class="sortable" style="width:44px" onclick="sortBy('amount')">Amount</th>
         <th style="width:38px">Target</th>
         <th style="width:50px">Tâches</th>
         <th style="width:100px">Status</th>
@@ -216,7 +221,7 @@ const PROJ_SHEET  = 'Projects'; // nom de l'onglet projets (pipeline)
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-const STS   = {todo:'To Do', inp:'In Progress', done:'Done', blk:'Blocked'};
+const STS   = {todo:'To Do', inp:'Waiting feedback', done:'Done', blk:'Blocked'};
 const BCLS  = {todo:'b-todo', inp:'b-inp', done:'b-done', blk:'b-blk'};
 const OWNERS_DEF = ['Niko','Barlen','Friedrich','Leena','Carl','Tchini','Barlen/Amanda'];
 
@@ -225,6 +230,8 @@ let tokenClient;
 let accessToken = null;
 let tid = 1;
 let syncTimeout = null;
+let sortCol = null;
+let sortDir = 'asc';
 
 // ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
 function initGoogle() {
@@ -453,7 +460,9 @@ function initFilters() {
     const sel = document.getElementById(id);
     sel.innerHTML = `<option value="">${def}</option>` + vals.map(v => `<option value="${v}">${v}</option>`).join('');
   };
-  build('fPhase', uniq(projects.map(p=>p.phase)), 'Toutes');
+  // Phase: multi-select, no empty option
+  const phSel = document.getElementById('fPhase');
+  phSel.innerHTML = uniq(projects.map(p=>p.phase)).map(v=>`<option value="${v}">${v}</option>`).join('');
   build('fSol',   uniq(projects.map(p=>p.solution)), 'Toutes');
   build('fAgent', uniq(projects.map(p=>p.agent)), 'Tous');
 }
@@ -463,15 +472,19 @@ function updateOwners() {
   const sel = document.getElementById('fOwn'); const cur = sel.value;
   sel.innerHTML = '<option value="">Tous</option>' + [...set].sort().map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
 }
+function getSelectedPhases() {
+  const sel = document.getElementById('fPhase');
+  return [...sel.selectedOptions].map(o=>o.value);
+}
 function getVisible() {
   const q   = document.getElementById('search').value.toLowerCase();
-  const fp  = document.getElementById('fPhase').value;
+  const fps = getSelectedPhases();
   const fs  = document.getElementById('fSol').value;
   const fa  = document.getElementById('fAgent').value;
   const fst = document.getElementById('fSt').value;
   const fo  = document.getElementById('fOwn').value;
-  return projects.filter(p => {
-    if (fp && p.phase !== fp) return false;
+  let result = projects.filter(p => {
+    if (fps.length && !fps.includes(p.phase)) return false;
     if (fs && p.solution !== fs) return false;
     if (fa && p.agent !== fa) return false;
     if (q && ![p.company,p.country,p.solution,p.desc,p.mailid].join(' ').toLowerCase().includes(q)) return false;
@@ -481,6 +494,15 @@ function getVisible() {
     }
     return true;
   });
+  // Apply sort
+  if (sortCol) {
+    result = [...result].sort((a, b) => {
+      const av = (a[sortCol]||'').toString().toLowerCase();
+      const bv = (b[sortCol]||'').toString().toLowerCase();
+      return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }
+  return result;
 }
 
 // ─── STATS ────────────────────────────────────────────────────────────────────
@@ -489,10 +511,24 @@ function updateStats(vis) {
   document.getElementById('stats-bar').innerHTML = `
     <div class="sc"><div class="n">${vis.length}</div><div class="l">Projets</div></div>
     <div class="sc"><div class="n">${projects.filter(p=>p.phase==='5 Push PO'||p.phase==='6 Push Payment').length}</div><div class="l">Push PO/Pay</div></div>
-    <div class="sc"><div class="n">${at.filter(t=>t.status==='inp').length}</div><div class="l">In Progress</div></div>
+    <div class="sc"><div class="n">${at.filter(t=>t.status==='inp').length}</div><div class="l">Waiting</div></div>
     <div class="sc"><div class="n">${at.filter(t=>t.status==='blk').length}</div><div class="l">Bloquées</div></div>
     <div class="sc"><div class="n">${at.filter(t=>t.status==='done').length}/${at.length}</div><div class="l">Done/Total</div></div>
   `;
+}
+
+// ─── SORT ─────────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+  else { sortCol = col; sortDir = 'asc'; }
+  // Update header classes
+  document.querySelectorAll('th.sortable').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.getAttribute('onclick') === `sortBy('${col}')`) {
+      th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+    }
+  });
+  render();
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
