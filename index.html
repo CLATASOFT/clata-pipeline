@@ -85,7 +85,7 @@ th.sort-desc::after{content:' ▼';font-size:8px}
 .exp{width:10px;color:#bbb;font-size:10px;user-select:none;text-align:center}
 
 /* ACTION PAD */
-#action-pad{width:200px;flex-shrink:0;border-left:1px solid #e5e5e5;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+#action-pad{width:280px;flex-shrink:0;border-left:1px solid #e5e5e5;display:flex;flex-direction:column;background:#fff;overflow:hidden;min-width:160px;max-width:500px}
 #action-pad-header{padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 #action-pad-header span{font-size:11px;font-weight:600;color:#1a1a1a}
 #action-pad-header button{font-size:10px;padding:2px 7px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#555}
@@ -111,6 +111,8 @@ th.sort-desc::after{content:' ▼';font-size:8px}
 .ap-item:hover .ap-del,.ap-group-header:hover .ap-del{opacity:1}
 #ap-add-group{font-size:11px;color:#aaa;background:none;border:none;cursor:pointer;padding:6px 10px;display:block;width:100%;text-align:left;border-top:1px solid #f0f0f0;margin-top:4px}
 #ap-add-group:hover{color:#1a1a1a}
+.ap-add-group-btn{font-size:11px;color:#aaa;background:none;border:none;cursor:pointer;padding:6px 10px;display:block;width:100%;text-align:left;border-top:1px solid #f0f0f0;margin-top:4px}
+.ap-add-group-btn:hover{color:#1a1a1a}
 #ap-resize{width:4px;cursor:col-resize;background:transparent;flex-shrink:0}
 #ap-resize:hover{background:#e5e5e5}
 @media(max-width:700px){#action-pad{display:none}}
@@ -177,7 +179,16 @@ th.sort-desc::after{content:' ▼';font-size:8px}
   #cl-list{width:140px !important;min-width:140px;flex-shrink:0;border-right:1px solid #e5e5e5 !important;border-bottom:none !important;max-height:none;overflow-y:auto}
   #cl-list > div{padding:8px 10px !important;font-size:12px}
   #cl-detail{flex:1;padding:12px !important;overflow-y:auto;font-size:12px}
-  #cl-detail h2{font-size:15px !important}
+  /* Hide sidebar action pad on mobile - use Actions tab instead */
+  #action-pad{display:none}
+  #ap-resize{display:none}
+  /* Actions tab full width on mobile */
+  #view-actions .ap-item-text{font-size:13px}
+  #view-actions .ap-group-name{font-size:13px}
+  #view-actions .ap-item{padding:4px 8px 4px 24px}
+  #view-actions .ap-item.level2{padding-left:40px}
+  #view-actions .ap-owner{width:64px;font-size:11px}
+  #view-actions .ap-group-header{padding:6px 10px}
 }
 
 /* LOADING */
@@ -229,6 +240,21 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button id="tab-pipeline" onclick="switchTab('pipeline')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600">Pipeline</button>
     <button id="tab-busdev" onclick="switchTab('busdev')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Bus Dev</button>
     <button id="tab-clients" onclick="switchTab('clients')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Clients</button>
+    <button id="tab-actions" onclick="switchTab('actions')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">⚡ Actions</button>
+  </div>
+
+  <!-- ACTIONS TAB (mobile full view) -->
+  <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#fff">
+    <div style="padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <span style="font-size:13px;font-weight:600;color:#1a1a1a">⚡ Actions</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button id="ap-filter-btn2" onclick="toggleApFilter()" title="Filtrer par pipeline" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">🔍 Filtre</button>
+        <button onclick="apAddGroup()" style="font-size:11px;padding:3px 8px;border:1px solid #1a1a1a;border-radius:5px;background:#1a1a1a;color:#fff;cursor:pointer">+ Groupe</button>
+        <button onclick="apCollapseAll()" style="font-size:13px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#777">−</button>
+        <button onclick="apExpandAll()" style="font-size:13px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#777">+</button>
+      </div>
+    </div>
+    <div id="action-tab-body" style="flex:1;overflow-y:auto;padding:6px 0"></div>
   </div>
 
   <!-- PIPELINE TAB -->
@@ -253,6 +279,7 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <select id="fAgent" onchange="render()"><option value="">Tous</option></select>
     <div class="sep"></div>
     <button id="btn-import" onclick="openImport()">Import XLS</button>
+    <button onclick="exportXLS()" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#444">Export XLS</button>
     <button onclick="openNewProject()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600">+ Nouvelle ligne</button>
     <div class="sep"></div>
     <button id="btn-filter-diamond" onclick="toggleFilterDiamond()" title="Lignes importantes seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">◆</button>
@@ -282,6 +309,7 @@ th.sort-desc::after{content:' ▼';font-size:8px}
         <th class="sortable" style="width:65px" onclick="sortBy('phase')">Phase</th>
         <th style="width:90px">Description</th>
         <th style="width:58px">Mail ID</th>
+        <th style="width:70px">Statut</th>
         <th class="sortable" style="width:32px" onclick="sortBy('amount')">Amt</th>
         <th style="width:28px">Tgt</th>
         <th style="width:12px"></th>
@@ -364,7 +392,8 @@ th.sort-desc::after{content:' ▼';font-size:8px}
   <div id="action-pad">
     <div id="action-pad-header">
       <span>⚡ Actions</span>
-      <div style="display:flex;gap:4px">
+      <div style="display:flex;gap:4px;align-items:center">
+        <button id="ap-filter-btn" onclick="toggleApFilter()" title="Filtrer par sélection pipeline" style="font-size:9px;padding:2px 5px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#aaa">🔍</button>
         <button onclick="apCollapseAll()" title="Tout replier">−</button>
         <button onclick="apExpandAll()" title="Tout déplier">+</button>
       </div>
@@ -598,6 +627,7 @@ async function loadAll() {
     initFilters();
     render();
     renderActionPad();
+    initApResize();
     showSync('ok', 'Synchronisé');
   } catch(e) {
     console.error(e);
@@ -606,14 +636,14 @@ async function loadAll() {
 }
 
 async function loadProjects() {
-  const rows = await sheetsGet(`${PROJ_SHEET}!A2:K1000`);
+  const rows = await sheetsGet(`${PROJ_SHEET}!A2:L1000`);
   if (!rows.length) return;
   projects = rows.filter(r => r[1]).map((r, i) => ({
     id: i + 1,
     country:  r[0]||'', company: r[1]||'', agent:   r[2]||'',
     solution: r[3]||'', phase:   r[4]||'', desc:    r[5]||'',
     mailid:   r[6]||'', amount:  r[7]||'', target:  r[8]||'',
-    diamond:  r[9]==='1',
+    diamond:  r[9]==='1', status: r[10]||'',
     expanded: false, tasks: []
   }));
 }
@@ -730,9 +760,9 @@ async function saveTasks() {
 }
 
 async function saveProjects(data) {
-  const rows = [['Country','Company','Agent','Solution','Phase','Description','mail ID','Amount','Target','Diamond']];
-  data.forEach(r => rows.push([r.country,r.company,r.agent,r.solution,r.phase,r.desc,r.mailid,r.amount,r.target,r.diamond?'1':'']));
-  await sheetsClear(`${PROJ_SHEET}!A1:K1000`);
+  const rows = [['Country','Company','Agent','Solution','Phase','Description','mail ID','Amount','Target','Diamond','Status']];
+  data.forEach(r => rows.push([r.country,r.company,r.agent,r.solution,r.phase,r.desc,r.mailid,r.amount,r.target,r.diamond?'1':'',r.status||'']));
+  await sheetsClear(`${PROJ_SHEET}!A1:L1000`);
   await sheetsUpdate(`${PROJ_SHEET}!A1`, rows);
 }
 
@@ -965,12 +995,108 @@ function render() {
       <td><span class="ph">${p.phase||'—'}</span></td>
       <td class="desc-cell" title="${p.desc}">${p.desc}</td>
       <td class="mid-cell" onclick="event.stopPropagation();copyMailId('${p.mailid}')" style="cursor:pointer;color:#2563eb;text-decoration:underline dotted">${p.mailid}</td>
+      <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#555;cursor:pointer;position:relative" onclick="event.stopPropagation();openStatusEditor(${p.id},this)">
+        <span title="${(p.status||'').replace(/"/g,'&quot;')}" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${p.status?'#333':'#ccc'}">${p.status||'—'}</span>
+      </td>
       <td class="amt">${p.amount}</td>
       <td style="font-size:10px;color:#aaa">${p.target}</td>
       <td><button class="del-btn" onclick="event.stopPropagation();deleteProject(${p.id})" title="Supprimer">✕</button></td>`;
     tbody.appendChild(tr);
   });
   applyColVisibility();
+  if (apFilterActive) renderActionPad();
+}
+
+function setProjStatus(pid, val) {
+  const p = projects.find(x=>x.id===pid);
+  if (!p) return;
+  p.status = val.trim();
+  showSync('loading','Sauvegarde...');
+  saveProjects(projects).then(()=>showSync('ok','Sauvegardé ✓')).catch(()=>showSync('err','Erreur'));
+}
+
+// ─── STATUS POPUP EDITOR ──────────────────────────────────────────────────────
+let statusPopup = null;
+function openStatusEditor(pid, cell) {
+  closeStatusEditor();
+  const p = projects.find(x=>x.id===pid);
+  if (!p) return;
+  const rect = cell.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.id = 'status-popup';
+  pop.style.cssText = `position:fixed;z-index:500;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.15);padding:8px;min-width:240px;max-width:340px`;
+  pop.style.left = Math.min(rect.left, window.innerWidth-350) + 'px';
+  pop.style.top  = (rect.bottom + 2) + 'px';
+  pop.innerHTML = `
+    <div style="font-size:10px;color:#888;margin-bottom:4px;font-weight:600">${p.company} — Statut</div>
+    <textarea id="status-ta" style="width:100%;height:100px;font-size:11px;border:1px solid #e0e0e0;border-radius:5px;padding:6px;resize:vertical;line-height:1.5;outline:none;font-family:Arial,sans-serif" placeholder="Commentaire, bullet list... (Entrée = nouvelle ligne)">${p.status||''}</textarea>
+    <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:6px">
+      <button onclick="closeStatusEditor()" style="font-size:10px;padding:3px 10px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer">Annuler</button>
+      <button onclick="saveStatusEditor(${pid})" style="font-size:10px;padding:3px 10px;border:1px solid #1a1a1a;border-radius:5px;background:#1a1a1a;color:#fff;cursor:pointer">Enregistrer</button>
+    </div>`;
+  document.body.appendChild(pop);
+  statusPopup = pop;
+  document.getElementById('status-ta').focus();
+  // Close on outside click
+  setTimeout(() => document.addEventListener('click', closeStatusEditor, {once:true}), 10);
+}
+function saveStatusEditor(pid) {
+  const ta = document.getElementById('status-ta');
+  if (!ta) return;
+  const val = ta.value;
+  setProjStatus(pid, val);
+  closeStatusEditor();
+  render();
+}
+function closeStatusEditor() {
+  if (statusPopup) { statusPopup.remove(); statusPopup = null; }
+}
+
+// ─── EXPORT XLS ───────────────────────────────────────────────────────────────
+function exportXLS() {
+  const vis = getVisible();
+  const wb = XLSX.utils.book_new();
+
+  // Build rows: pipeline cols + action cols per group name matching company
+  const headers = ['Société','Pays','Agent','Solution','Phase','Description','Mail ID','Statut','Amount','Target','Actions'];
+  const rows = vis.map(p => {
+    // Find matching action groups
+    const groups = apData.filter(g => g.name && (
+      g.name.toLowerCase().includes(p.company.toLowerCase()) ||
+      p.company.toLowerCase().includes(g.name.toLowerCase())
+    ));
+    const actionsText = groups.flatMap(g => [
+      g.name,
+      ...g.items.map(it => (it.level===2?'    ':'  ') + (it.done?'✓ ':'○ ') + it.text + (it.owner?' ['+it.owner+']':''))
+    ]).join('\n');
+    return [p.company, p.country, p.agent, p.solution, p.phase, p.desc, p.mailid, p.status||'', p.amount, p.target, actionsText];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  // Column widths
+  ws['!cols'] = [20,12,12,12,14,22,10,22,8,8,40].map(w=>({wch:w}));
+  // Wrap text for status and actions cols
+  rows.forEach((_, i) => {
+    const rowIdx = i + 2;
+    ['H','K'].forEach(col => {
+      const cell = ws[col+rowIdx];
+      if (cell) cell.s = {alignment:{wrapText:true,vertical:'top'}};
+    });
+  });
+  XLSX.utils.book_append_sheet(wb, ws, 'Pipeline');
+
+  // Second sheet: Actions only
+  const ah = ['Groupe/Client','Niveau','Action','Owner','Fait'];
+  const arows = apData.flatMap(g => [
+    [g.name,'','','',''],
+    ...g.items.map(it=>[g.name, it.level===1?'Action':'Sous-action', it.text, it.owner||'', it.done?'✓':''])
+  ]);
+  const ws2 = XLSX.utils.aoa_to_sheet([ah,...arows]);
+  ws2['!cols'] = [20,14,36,12,6].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws2, 'Actions');
+
+  XLSX.writeFile(wb, `CLATA_Pipeline_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showSync('ok','Export XLS ✓');
 }
 
 function toggleDiamond(pid) {
@@ -1238,7 +1364,8 @@ function switchTab(tab) {
   document.getElementById('view-pipeline').style.display = tab === 'pipeline' ? 'flex' : 'none';
   document.getElementById('view-busdev').style.display   = tab === 'busdev'   ? 'flex' : 'none';
   document.getElementById('view-clients').style.display  = tab === 'clients'  ? 'flex' : 'none';
-  ['pipeline','busdev','clients'].forEach(t => {
+  document.getElementById('view-actions').style.display  = tab === 'actions'  ? 'flex' : 'none';
+  ['pipeline','busdev','clients','actions'].forEach(t => {
     const btn = document.getElementById('tab-'+t);
     if (!btn) return;
     btn.style.cssText = t===tab
@@ -1247,6 +1374,7 @@ function switchTab(tab) {
   });
   if (tab === 'busdev') renderBD();
   if (tab === 'clients') renderClients();
+  if (tab === 'actions') renderActionPad();
 }
 
 // ─── BUS DEV RENDER ───────────────────────────────────────────────────────────
@@ -1575,12 +1703,36 @@ function openClientView(company, mailid) {
 
 // ─── ACTION PAD ───────────────────────────────────────────────────────────────
 function renderActionPad() {
-  const body = document.getElementById('action-pad-body');
-  if (!body) return;
-  body.innerHTML = '';
-  apData.forEach(g => {
-    const gDiv = document.createElement('div');
-    gDiv.className = 'ap-group';
+  const body     = document.getElementById('action-pad-body');
+  const tabBody  = document.getElementById('action-tab-body');
+  const targets  = [body, tabBody].filter(Boolean);
+  if (!targets.length) return;
+
+  // Filter: only show groups matching visible pipeline companies
+  let visibleNames = null;
+  if (apFilterActive) {
+    const vis = getVisible();
+    visibleNames = new Set(vis.map(p => p.company.toLowerCase()));
+  }
+
+  // Sync filter button state on both panels
+  ['ap-filter-btn','ap-filter-btn2'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.style.background = apFilterActive ? '#1a1a1a' : '#fff';
+    btn.style.color = apFilterActive ? '#fff' : '#aaa';
+    btn.style.borderColor = apFilterActive ? '#1a1a1a' : '#ddd';
+  });
+
+  targets.forEach(body => {
+    body.innerHTML = '';
+    apData.forEach(g => {
+      if (visibleNames !== null) {
+        const match = [...visibleNames].some(n => n.includes(g.name.toLowerCase()) || g.name.toLowerCase().includes(n));
+        if (!match && g.name) return;
+      }
+      const gDiv = document.createElement('div');
+      gDiv.className = 'ap-group';
 
     // Group header
     const gh = document.createElement('div');
@@ -1629,14 +1781,16 @@ function renderActionPad() {
       gDiv.appendChild(itemsDiv);
     }
     body.appendChild(gDiv);
-  });
+    });
 
-  // Add group button
-  const addGrp = document.createElement('button');
-  addGrp.id = 'ap-add-group';
-  addGrp.textContent = '+ Groupe / Client';
-  addGrp.onclick = apAddGroup;
-  body.appendChild(addGrp);
+    // Add group button
+    const addGrp = document.createElement('button');
+    addGrp.className = 'ap-add-group-btn';
+    addGrp.id = 'ap-add-group';
+    addGrp.textContent = '+ Groupe / Client';
+    addGrp.onclick = apAddGroup;
+    body.appendChild(addGrp);
+  }); // end targets.forEach
 }
 
 function apAddGroup() {
@@ -1720,6 +1874,46 @@ function apSetOwner(gid, iid, val) {
 }
 
 function apCycleOwner(gid, iid) { /* replaced by apSetOwner */ }
+
+// ─── ACTION PAD FILTER ────────────────────────────────────────────────────────
+let apFilterActive = false;
+function toggleApFilter() {
+  apFilterActive = !apFilterActive;
+  const btn = document.getElementById('ap-filter-btn');
+  if (btn) {
+    btn.style.background = apFilterActive ? '#1a1a1a' : '#fff';
+    btn.style.color = apFilterActive ? '#fff' : '#aaa';
+    btn.style.borderColor = apFilterActive ? '#1a1a1a' : '#ddd';
+  }
+  renderActionPad();
+}
+
+// ─── ACTION PAD RESIZE ────────────────────────────────────────────────────────
+function initApResize() {
+  const handle = document.getElementById('ap-resize');
+  const pad    = document.getElementById('action-pad');
+  if (!handle || !pad) return;
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    startX = e.clientX;
+    startW = pad.offsetWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    const onMove = e2 => {
+      const dx = startX - e2.clientX; // dragging left = wider
+      const newW = Math.min(500, Math.max(160, startW + dx));
+      pad.style.width = newW + 'px';
+    };
+    const onUp = () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
 
 function apCollapseAll() { apData.forEach(g=>g.collapsed=true); renderActionPad(); scheduleApSave(); }
 function apExpandAll()   { apData.forEach(g=>g.collapsed=false); renderActionPad(); scheduleApSave(); }
