@@ -702,7 +702,7 @@ async function saveClients() {
 }
 
 async function loadActions() {
-  const rows = await sheetsGet(`${ACTIONS_SHEET}!A2:E1000`);
+  const rows = await sheetsGet(`${ACTIONS_SHEET}!A2:F1000`);
   apData = [];
   let maxId = 0;
   let curGroup = null;
@@ -715,7 +715,7 @@ async function loadActions() {
       curGroup = { id, name: r[1]||'', collapsed: r[3]==='1', items: [] };
       apData.push(curGroup);
     } else if (curGroup) {
-      curGroup.items.push({ id, text: r[1]||'', owner: r[2]||'', level, done: r[3]==='done' });
+      curGroup.items.push({ id, text: r[1]||'', owner: r[2]||'', level, done: r[3]==='done', date: r[5]||'' });
     }
   });
   apNextId = maxId + 1;
@@ -723,12 +723,12 @@ async function loadActions() {
 
 async function saveActions() {
   try {
-    const rows = [['level','text','owner','extra','id']];
+    const rows = [['level','text','owner','extra','id','date']];
     apData.forEach(g => {
-      rows.push([0, g.name, '', g.collapsed?'1':'', g.id]);
-      g.items.forEach(it => rows.push([it.level, it.text, it.owner||'', it.done?'done':'', it.id]));
+      rows.push([0, g.name, '', g.collapsed?'1':'', g.id, '']);
+      g.items.forEach(it => rows.push([it.level, it.text, it.owner||'', it.done?'done':'', it.id, it.date||'']));
     });
-    await sheetsClear(`${ACTIONS_SHEET}!A1:E1000`);
+    await sheetsClear(`${ACTIONS_SHEET}!A1:F1000`);
     await sheetsUpdate(`${ACTIONS_SHEET}!A1`, rows);
   } catch(e) { console.error('saveActions:', e); }
 }
@@ -1762,8 +1762,15 @@ function renderActionPad() {
           <input class="ap-owner ${ownerClass}" list="ap-own-dl-${it.id}" value="${it.owner||''}" placeholder="+" 
             onchange="apSetOwner(${g.id},${it.id},this.value)"
             onclick="event.stopPropagation()"
-            style="width:56px;text-align:center;cursor:text">
+            style="width:52px;text-align:center;cursor:text">
           <datalist id="ap-own-dl-${it.id}">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
+          <input type="date" value="${it.date||''}"
+            onchange="apSetDate(${g.id},${it.id},this.value)"
+            onclick="event.stopPropagation()"
+            title="${it.date||'Date'}"
+            style="width:22px;font-size:8px;border:none;background:transparent;color:${it.date?(new Date(it.date)<new Date()?'#ef4444':'#888'):'#ddd'};cursor:pointer;padding:0;outline:none;flex-shrink:0"
+            onfocus="this.style.width='90px';this.style.background='#f0f4ff';this.style.borderRadius='3px'"
+            onblur="this.style.width='22px';this.style.background='transparent'">
           <button class="ap-del" onclick="apDelItem(${g.id},${it.id})">✕</button>`;
         // Auto-resize textarea
         const ta = itDiv.querySelector('textarea');
@@ -1873,7 +1880,13 @@ function apSetOwner(gid, iid, val) {
   scheduleApSave();
 }
 
-function apCycleOwner(gid, iid) { /* replaced by apSetOwner */ }
+function apSetDate(gid, iid, val) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.date = val;
+  scheduleApSave();
+}
 
 // ─── ACTION PAD FILTER ────────────────────────────────────────────────────────
 let apFilterActive = false;
