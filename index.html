@@ -24,8 +24,8 @@ body{font-family:Arial,sans-serif;font-size:12px;background:#f4f4f4;color:#222;m
 
 /* APP */
 #main-app{display:none;flex-direction:column;height:100vh}
-#topbar{background:#1a1a1a;color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#topbar h1{font-size:14px;font-weight:600;letter-spacing:0.3px}
+#topbar{background:#1a1a1a;color:#fff;padding:6px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#topbar h1{font-size:13px;font-weight:600;letter-spacing:0.3px}
 #topbar .right{display:flex;align-items:center;gap:10px}
 #topbar .user{font-size:11px;color:#aaa}
 #btn-logout{font-size:11px;padding:3px 8px;background:transparent;border:1px solid #444;border-radius:4px;color:#aaa;cursor:pointer}
@@ -38,53 +38,82 @@ body{font-family:Arial,sans-serif;font-size:12px;background:#f4f4f4;color:#222;m
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 
 /* TOOLBAR */
-#toolbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:8px 12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
-#toolbar input{font-size:11px;padding:5px 9px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222;width:140px}
+#toolbar{background:#fff;border-bottom:1px solid #e5e5e5;padding:5px 10px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex-shrink:0}
+#toolbar input{font-size:11px;padding:3px 7px;border:1px solid #ddd;border-radius:5px;background:#f9f9f9;color:#222;width:120px}
 #toolbar input:focus{outline:none;border-color:#999;background:#fff}
-#toolbar select{font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px;background:#f9f9f9;color:#222}
+#toolbar select{font-size:11px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;background:#f9f9f9;color:#222}
 #toolbar select:focus{outline:none;border-color:#999}
 #toolbar label{font-size:10px;color:#888;white-space:nowrap}
-#toolbar .sep{width:1px;height:18px;background:#e5e5e5;margin:0 2px}
-#btn-import{font-size:11px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444}
+#toolbar .sep{width:1px;height:14px;background:#e5e5e5;margin:0 2px}
+#btn-import{font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#444}
 #btn-import:hover{background:#f0f0f0}
 
 /* STATS */
-#stats-bar{background:#fff;border-bottom:1px solid #e5e5e5;padding:6px 12px;display:flex;gap:8px;flex-shrink:0;overflow-x:auto}
-.sc{background:#f9f9f9;border:1px solid #ebebeb;border-radius:6px;padding:5px 10px;white-space:nowrap;text-align:center;min-width:75px}
-.sc .n{font-size:16px;font-weight:700;color:#1a1a1a}
-.sc .l{font-size:9px;color:#999;margin-top:1px}
+#stats-bar{background:#fff;border-bottom:1px solid #e5e5e5;padding:4px 10px;display:flex;gap:6px;flex-shrink:0;overflow-x:auto}
+.sc{background:#f9f9f9;border:1px solid #ebebeb;border-radius:5px;padding:3px 8px;white-space:nowrap;text-align:center;min-width:60px}
+.sc .n{font-size:15px;font-weight:700;color:#1a1a1a}
+.sc .l{font-size:9px;color:#999;margin-top:0}
 
 /* TABLE */
 #table-wrap{flex:1;overflow:auto}
-table{border-collapse:collapse;width:100%;min-width:980px}
-th{text-align:left;padding:6px 8px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:10px;white-space:nowrap;background:#fafafa;position:sticky;top:0;z-index:2}
-.proj-row td{padding:6px 8px;border-bottom:1px solid #f0f0f0;vertical-align:middle;background:#fafafa;cursor:pointer;transition:background 0.1s}
+table{border-collapse:collapse;width:100%;table-layout:fixed}
+th{text-align:left;padding:3px 4px;border-bottom:1px solid #e0e0e0;color:#888;font-weight:600;font-size:9px;white-space:nowrap;background:#fafafa;position:sticky;top:0;z-index:2;overflow:hidden}
+.proj-row td{padding:3px 4px;border-bottom:1px solid #f0f0f0;vertical-align:middle;background:#fafafa;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
 .proj-row:hover td{background:#eef2ff}
-.task-row td{padding:4px 8px;border-bottom:1px solid #f7f7f7;vertical-align:middle;background:#fff}
+.task-row td{padding:2px 4px;border-bottom:1px solid #f7f7f7;vertical-align:middle;background:#fff;overflow:hidden;font-size:10px}
 .task-row:hover td{background:#f9f9f9}
-.pname{font-weight:700;color:#1a1a1a;font-size:11px}
-.sol{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;background:#ede9ff;color:#4338ca;white-space:nowrap}
-.ph{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;background:#f0f0f0;border:1px solid #ddd;color:#555;white-space:nowrap}
-.amt{font-size:10px;color:#166534;font-weight:600}
-.desc-cell{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#777;font-size:10px}
-.mid-cell{color:#bbb;font-size:10px}
-.badge{display:inline-block;font-size:10px;padding:1px 7px;border-radius:20px;white-space:nowrap;font-weight:500}
+.pname{font-weight:700;color:#1a1a1a;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sol{display:inline-block;font-size:9px;padding:1px 4px;border-radius:3px;background:#ede9ff;color:#4338ca;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.ph{display:inline-block;font-size:9px;padding:1px 4px;border-radius:10px;background:#f0f0f0;border:1px solid #ddd;color:#555;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.amt{font-size:9px;color:#166534;font-weight:600}
+.desc-cell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#777;font-size:9px}
+.mid-cell{color:#2563eb;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline dotted}
+.badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:20px;white-space:nowrap;font-weight:500}
 .b-todo{background:#dbeafe;color:#1e40af}
 .b-inp{background:#fef3c7;color:#92400e}
 .b-done{background:#d1fae5;color:#065f46}
 .b-blk{background:#fee2e2;color:#991b1b}
-.isel{font-size:10px;padding:2px 4px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#222}
-.add-t{font-size:10px;color:#bbb;background:none;border:none;cursor:pointer;padding:2px 0}
+.isel{font-size:9px;padding:1px 3px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#222;width:100%}
+.add-t{font-size:9px;color:#bbb;background:none;border:none;cursor:pointer;padding:1px 0}
 .add-t:hover{color:#1a1a1a}
-.del-btn{background:none;border:none;cursor:pointer;color:#ddd;font-size:11px;opacity:0;padding:0 2px}
+.del-btn{background:none;border:none;cursor:pointer;color:#ddd;font-size:10px;opacity:0;padding:0 1px}
 tr:hover .del-btn{opacity:1}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover{color:#333;background:#f0f0f0}
-th.sort-asc::after{content:' ▲';font-size:9px}
-th.sort-desc::after{content:' ▼';font-size:9px}
-.exp{width:16px;color:#bbb;font-size:11px;user-select:none;text-align:center}
+th.sort-asc::after{content:' ▲';font-size:8px}
+th.sort-desc::after{content:' ▼';font-size:8px}
+.exp{width:10px;color:#bbb;font-size:10px;user-select:none;text-align:center}
 
-/* MODAL */
+/* ACTION PAD */
+#action-pad{width:200px;flex-shrink:0;border-left:1px solid #e5e5e5;display:flex;flex-direction:column;background:#fff;overflow:hidden}
+#action-pad-header{padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#action-pad-header span{font-size:11px;font-weight:600;color:#1a1a1a}
+#action-pad-header button{font-size:10px;padding:2px 7px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#555}
+#action-pad-body{flex:1;overflow-y:auto;padding:6px 0}
+.ap-group{margin-bottom:2px}
+.ap-group-header{display:flex;align-items:center;gap:4px;padding:4px 8px;cursor:pointer;border-radius:4px;margin:0 4px}
+.ap-group-header:hover{background:#f5f5f5}
+.ap-group-name{font-size:11px;font-weight:700;color:#1a1a1a;flex:1;outline:none;border:none;background:transparent;cursor:text;padding:0;min-width:0}
+.ap-group-name:focus{background:#f0f4ff;border-radius:3px;padding:0 3px}
+.ap-item{display:flex;align-items:flex-start;gap:4px;padding:2px 4px 2px 20px;border-radius:4px;margin:0 4px;position:relative}
+.ap-item.level2{padding-left:34px}
+.ap-item:hover{background:#f9f9f9}
+.ap-item-text{font-size:11px;color:#333;flex:1;outline:none;border:none;background:transparent;cursor:text;padding:0;line-height:1.4;resize:none;min-width:0;word-break:break-word;min-height:16px}
+.ap-item-text:focus{background:#f0f4ff;border-radius:3px;padding:0 3px}
+.ap-owner{font-size:10px;padding:1px 4px;border-radius:3px;white-space:nowrap;flex-shrink:0;border:1px solid transparent;font-weight:500;width:56px;text-align:center;margin-left:auto;outline:none;cursor:text}
+.ap-owner:focus{border-color:#ddd}
+.ap-owner.me{background:#fff3e0;color:#e65100}
+.ap-owner.other{background:#e8f5e9;color:#2e7d32}
+.ap-owner.none{background:#f5f5f5;color:#bbb}
+.ap-add-item{font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px 8px 2px 20px;display:block;width:100%;text-align:left}
+.ap-add-item:hover{color:#888}
+.ap-del{opacity:0;background:none;border:none;cursor:pointer;color:#ddd;font-size:10px;padding:0 2px;flex-shrink:0}
+.ap-item:hover .ap-del,.ap-group-header:hover .ap-del{opacity:1}
+#ap-add-group{font-size:11px;color:#aaa;background:none;border:none;cursor:pointer;padding:6px 10px;display:block;width:100%;text-align:left;border-top:1px solid #f0f0f0;margin-top:4px}
+#ap-add-group:hover{color:#1a1a1a}
+#ap-resize{width:4px;cursor:col-resize;background:transparent;flex-shrink:0}
+#ap-resize:hover{background:#e5e5e5}
+@media(max-width:700px){#action-pad{display:none}}
 #modal-area .ov{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
 .modal{background:#fff;border-radius:12px;padding:20px;width:300px;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.15)}
 .modal h3{font-size:14px;font-weight:700;color:#1a1a1a}
@@ -191,11 +220,15 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     </div>
   </div>
 
+  <!-- CONTENT + ACTION PAD -->
+  <div style="display:flex;flex:1;overflow:hidden">
+  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+
   <!-- TABS -->
   <div id="tab-nav" style="background:#fff;border-bottom:1px solid #e5e5e5;display:flex;gap:0;align-items:center;flex-shrink:0">
-    <button id="tab-pipeline" onclick="switchTab('pipeline')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600">Pipeline</button>
-    <button id="tab-busdev" onclick="switchTab('busdev')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Bus Dev</button>
-    <button id="tab-clients" onclick="switchTab('clients')" style="font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Clients</button>
+    <button id="tab-pipeline" onclick="switchTab('pipeline')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600">Pipeline</button>
+    <button id="tab-busdev" onclick="switchTab('busdev')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Bus Dev</button>
+    <button id="tab-clients" onclick="switchTab('clients')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Clients</button>
   </div>
 
   <!-- PIPELINE TAB -->
@@ -219,23 +252,10 @@ th.sort-desc::after{content:' ▼';font-size:9px}
     <label>Agent:</label>
     <select id="fAgent" onchange="render()"><option value="">Tous</option></select>
     <div class="sep"></div>
-    <label>Task:</label>
-    <select id="fSt" onchange="render()">
-      <option value="">Tous</option>
-      <option value="todo">To Do</option>
-      <option value="inp">Waiting feedback</option>
-      <option value="done">Done</option>
-      <option value="blk">Blocked</option>
-    </select>
-    <label>Owner:</label>
-    <select id="fOwn" onchange="render()"><option value="">Tous</option></select>
-    <div class="sep"></div>
     <button id="btn-import" onclick="openImport()">Import XLS</button>
     <button onclick="openNewProject()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600">+ Nouvelle ligne</button>
     <div class="sep"></div>
-    <button id="btn-filter-tasks" onclick="toggleFilterTasks()" title="Lignes avec tâches seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">☑</button>
     <button id="btn-filter-diamond" onclick="toggleFilterDiamond()" title="Lignes importantes seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">◆</button>
-    <button id="btn-show-archived" onclick="toggleArchived()" title="Afficher tâches archivées" style="font-size:11px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">📦 Archives</button>
     <div style="position:relative;display:inline-block">
       <button onclick="toggleColDD(event)" style="font-size:11px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444">Colonnes ▾</button>
       <div id="col-dd" style="display:none;position:absolute;top:100%;right:0;z-index:200;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:6px 0;min-width:150px" onclick="event.stopPropagation()">
@@ -253,21 +273,18 @@ th.sort-desc::after{content:' ▼';font-size:9px}
   <div id="table-wrap">
     <table>
       <thead id="thead"><tr>
-        <th style="width:16px"></th>
-        <th style="width:22px">◆</th>
-        <th class="sortable" onclick="sortBy('company')">Société</th>
-        <th class="sortable" style="width:80px" onclick="sortBy('country')">Pays</th>
-        <th class="sortable" style="width:68px" onclick="sortBy('agent')">Agent</th>
-        <th class="sortable" style="width:68px" onclick="sortBy('solution')">Solution</th>
-        <th class="sortable" style="width:90px" onclick="sortBy('phase')">Phase</th>
-        <th style="width:140px">Description</th>
-        <th style="width:78px">Mail ID</th>
-        <th class="sortable" style="width:44px" onclick="sortBy('amount')">Amount</th>
-        <th style="width:38px">Target</th>
-        <th style="width:50px">Tâches</th>
-        <th style="width:100px">Status</th>
-        <th style="width:75px">Owner</th>
-        <th style="width:22px"></th>
+        <th style="width:10px"></th>
+        <th style="width:14px">◆</th>
+        <th class="sortable" style="width:110px" onclick="sortBy('company')">Société</th>
+        <th class="sortable" style="width:52px" onclick="sortBy('country')">Pays</th>
+        <th class="sortable" style="width:48px" onclick="sortBy('agent')">Agent</th>
+        <th class="sortable" style="width:58px" onclick="sortBy('solution')">Solution</th>
+        <th class="sortable" style="width:65px" onclick="sortBy('phase')">Phase</th>
+        <th style="width:90px">Description</th>
+        <th style="width:58px">Mail ID</th>
+        <th class="sortable" style="width:32px" onclick="sortBy('amount')">Amt</th>
+        <th style="width:28px">Tgt</th>
+        <th style="width:12px"></th>
       </tr></thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -340,15 +357,42 @@ th.sort-desc::after{content:' ▼';font-size:9px}
       </div>
     </div>
   </div>
+  </div><!-- end inner flex column -->
+
+  <!-- ACTION PAD -->
+  <div id="ap-resize"></div>
+  <div id="action-pad">
+    <div id="action-pad-header">
+      <span>⚡ Actions</span>
+      <div style="display:flex;gap:4px">
+        <button onclick="apCollapseAll()" title="Tout replier">−</button>
+        <button onclick="apExpandAll()" title="Tout déplier">+</button>
+      </div>
+    </div>
+    <div id="action-pad-body"></div>
+  </div>
+
+  </div><!-- end content+pad wrapper -->
 </div>
 
 <div id="modal-area"></div>
 <div id="import-modal"></div>
 
-<!-- Google API for Sheets -->
-<script src="https://apis.google.com/js/api.js"></script>
-<!-- Google Identity Services (web OAuth) -->
-<script src="https://accounts.google.com/gsi/client"></script>
+<!-- Google API - only needed in web mode, not Electron -->
+<script>
+// In Electron, skip loading Google API scripts entirely
+if (!(window.electronAPI && window.electronAPI.isElectron)) {
+  const s1 = document.createElement('script');
+  s1.src = 'https://apis.google.com/js/api.js';
+  s1.onload = () => {
+    const s2 = document.createElement('script');
+    s2.src = 'https://accounts.google.com/gsi/client';
+    s2.onload = () => { if(window._gapiReady) window._gapiReady(); };
+    document.head.appendChild(s2);
+  };
+  document.head.appendChild(s1);
+}
+</script>
 <!-- SheetJS for XLS import -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
@@ -373,24 +417,40 @@ async function initGoogle() {
       document.getElementById('auth-screen').style.display = 'flex';
     }
   } else {
-    // Web: init gapi + GSI
-    gapi.load('client', async () => {
-      await gapi.client.init({ discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID_WEB,
-        scope: 'https://www.googleapis.com/auth/spreadsheets',
-        callback: async (resp) => {
-          if (resp.error) { showSync('err', 'Auth error'); return; }
-          currentToken = resp.access_token;
-          document.getElementById('loading').style.display = 'none';
-          document.getElementById('auth-screen').style.display = 'none';
-          document.getElementById('main-app').style.display = 'flex';
-          await loadAll();
-        }
-      });
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('auth-screen').style.display = 'flex';
-    });
+    // Web: gapi loaded dynamically above
+    window._gapiReady = async () => {
+      try {
+        gapi.load('client', async () => {
+          try {
+            await gapi.client.init({ discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
+            tokenClient = google.accounts.oauth2.initTokenClient({
+              client_id: CLIENT_ID_WEB,
+              scope: 'https://www.googleapis.com/auth/spreadsheets',
+              callback: async (resp) => {
+                if (resp.error) { showSync('err', 'Auth error'); return; }
+                currentToken = resp.access_token;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'flex';
+                await loadAll();
+              }
+            });
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'flex';
+          } catch(e) {
+            console.error('gapi.client.init error:', e);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('auth-screen').style.display = 'flex';
+          }
+        });
+      } catch(e) {
+        console.error('gapi.load error:', e);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'flex';
+      }
+    };
+    // If scripts already loaded (cached), trigger immediately
+    if (typeof gapi !== 'undefined' && typeof google !== 'undefined') window._gapiReady();
   }
 }
 
@@ -433,6 +493,7 @@ const TASKS_SHEET   = 'Tasks';
 const PROJ_SHEET    = 'Projects';
 const BUSDEV_SHEET  = 'BusDev';
 const CLIENTS_SHEET = 'Clients';
+const ACTIONS_SHEET = 'Actions';
 const BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 async function sheetsGet(range) {
@@ -472,6 +533,7 @@ async function ensureSheets() {
   if (!names.includes(PROJ_SHEET))    toAdd.push({ addSheet: { properties: { title: PROJ_SHEET } } });
   if (!names.includes(BUSDEV_SHEET))  toAdd.push({ addSheet: { properties: { title: BUSDEV_SHEET } } });
   if (!names.includes(CLIENTS_SHEET)) toAdd.push({ addSheet: { properties: { title: CLIENTS_SHEET } } });
+  if (!names.includes(ACTIONS_SHEET)) toAdd.push({ addSheet: { properties: { title: ACTIONS_SHEET } } });
   if (toAdd.length) {
     if (IS_ELECTRON) {
       await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}:batchUpdate`, body:{requests:toAdd}, token:currentToken });
@@ -498,6 +560,9 @@ let filterTasks = false;
 let filterDiamond = false;
 let showArchived = false;
 let selectedClientId = null;
+let apData = []; // [{id, name, collapsed, items:[{id,text,owner,level,done}]}]
+let apNextId = 1;
+const ME = 'Niko';
 
 // columns: key, label, index in tr (0-based, skip expand col=0)
 const COLS = [
@@ -511,9 +576,6 @@ const COLS = [
   {key:'mailid',   label:'Mail ID',      idx:8, hideable:true},
   {key:'amount',   label:'Amount',       idx:9, hideable:true},
   {key:'target',   label:'Target',       idx:10,hideable:true},
-  {key:'tasks',    label:'Tâches',       idx:11,hideable:true},
-  {key:'status',   label:'Status',       idx:12,hideable:false},
-  {key:'owner',    label:'Owner',        idx:13,hideable:false},
 ];
 let hiddenCols = new Set(JSON.parse(localStorage.getItem('clata_hidden_cols')||'[]'));
 
@@ -532,8 +594,10 @@ async function loadAll() {
     await loadTasks();
     await loadBusDev();
     await loadClients();
+    await loadActions();
     initFilters();
     render();
+    renderActionPad();
     showSync('ok', 'Synchronisé');
   } catch(e) {
     console.error(e);
@@ -606,6 +670,40 @@ async function saveClients() {
     showSync('ok', 'Sauvegardé ✓');
   } catch(e) { showSync('err', 'Erreur save'); }
 }
+
+async function loadActions() {
+  const rows = await sheetsGet(`${ACTIONS_SHEET}!A2:E1000`);
+  apData = [];
+  let maxId = 0;
+  let curGroup = null;
+  rows.forEach(r => {
+    if (!r[0] && !r[1] && !r[2]) return;
+    const id = parseInt(r[4]||'0') || ++maxId;
+    if (id > maxId) maxId = id;
+    const level = parseInt(r[0]||'0');
+    if (level === 0) {
+      curGroup = { id, name: r[1]||'', collapsed: r[3]==='1', items: [] };
+      apData.push(curGroup);
+    } else if (curGroup) {
+      curGroup.items.push({ id, text: r[1]||'', owner: r[2]||'', level, done: r[3]==='done' });
+    }
+  });
+  apNextId = maxId + 1;
+}
+
+async function saveActions() {
+  try {
+    const rows = [['level','text','owner','extra','id']];
+    apData.forEach(g => {
+      rows.push([0, g.name, '', g.collapsed?'1':'', g.id]);
+      g.items.forEach(it => rows.push([it.level, it.text, it.owner||'', it.done?'done':'', it.id]));
+    });
+    await sheetsClear(`${ACTIONS_SHEET}!A1:E1000`);
+    await sheetsUpdate(`${ACTIONS_SHEET}!A1`, rows);
+  } catch(e) { console.error('saveActions:', e); }
+}
+let apSaveTimeout = null;
+function scheduleApSave() { clearTimeout(apSaveTimeout); apSaveTimeout = setTimeout(saveActions, 1500); }
 
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 function scheduleSave() {
@@ -738,25 +836,12 @@ function clearPhases() {
   document.getElementById('phase-btn').textContent = 'Toutes ▾';
   render();
 }
-// phase-dd closed by global click listener in col visibility section
-function updateOwners() {
-  const set = new Set(OWNERS_DEF);
-  projects.forEach(p => p.tasks.forEach(t => { if(t.owner) set.add(t.owner); }));
-  const sel = document.getElementById('fOwn'); const cur = sel.value;
-  sel.innerHTML = '<option value="">Tous</option>' + [...set].sort().map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
-}
-function toggleFilterTasks() {
-  filterTasks = !filterTasks;
-  const btn = document.getElementById('btn-filter-tasks');
-  btn.style.background = filterTasks ? '#1a1a1a' : '#fff';
-  btn.style.color = filterTasks ? '#fff' : '#aaa';
-  render();
-}
+function updateOwners() { /* owners now managed in action pad only */ }
+function toggleFilterTasks() { /* removed - tasks no longer in main table */ }
 function toggleFilterDiamond() {
   filterDiamond = !filterDiamond;
   const btn = document.getElementById('btn-filter-diamond');
-  btn.style.background = filterDiamond ? '#f59e0b' : '#fff';
-  btn.style.color = filterDiamond ? '#fff' : '#aaa';
+  if (btn) { btn.style.background = filterDiamond ? '#f59e0b' : '#fff'; btn.style.color = filterDiamond ? '#fff' : '#aaa'; }
   render();
 }
 
@@ -768,22 +853,14 @@ function getVisible() {
   const fps = getSelectedPhases();
   const fs  = document.getElementById('fSol').value;
   const fa  = document.getElementById('fAgent').value;
-  const fst = document.getElementById('fSt').value;
-  const fo  = document.getElementById('fOwn').value;
   let result = projects.filter(p => {
-    if (filterTasks && p.tasks.filter(t=>!t.archived).length === 0) return false;
     if (filterDiamond && !p.diamond) return false;
     if (fps.length && !fps.includes(p.phase)) return false;
     if (fs && p.solution !== fs) return false;
     if (fa && p.agent !== fa) return false;
     if (q && ![p.company,p.country,p.solution,p.desc,p.mailid].join(' ').toLowerCase().includes(q)) return false;
-    if (fst || fo) {
-      const mt = p.tasks.filter(t => (!fst||t.status===fst) && (!fo||t.owner===fo));
-      if (!mt.length) return false;
-    }
     return true;
   });
-  // Apply sort
   if (sortCol) {
     result = [...result].sort((a, b) => {
       const av = (a[sortCol]||'').toString().toLowerCase();
@@ -796,13 +873,10 @@ function getVisible() {
 
 // ─── STATS ────────────────────────────────────────────────────────────────────
 function updateStats(vis) {
-  const at = projects.flatMap(p => p.tasks);
   document.getElementById('stats-bar').innerHTML = `
     <div class="sc"><div class="n">${vis.length}</div><div class="l">Projets</div></div>
     <div class="sc"><div class="n">${projects.filter(p=>p.phase==='5 Push PO'||p.phase==='6 Push Payment').length}</div><div class="l">Push PO/Pay</div></div>
-    <div class="sc"><div class="n">${at.filter(t=>t.status==='inp').length}</div><div class="l">Waiting</div></div>
-    <div class="sc"><div class="n">${at.filter(t=>t.status==='blk').length}</div><div class="l">Bloquées</div></div>
-    <div class="sc"><div class="n">${at.filter(t=>t.status==='done').length}/${at.length}</div><div class="l">Done/Total</div></div>
+    <div class="sc"><div class="n">${projects.filter(p=>p.diamond).length}</div><div class="l">Importants</div></div>
   `;
 }
 
@@ -866,38 +940,23 @@ function sortBy(col) {
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 function render() {
-  updateOwners();
-  const fst = document.getElementById('fSt').value;
-  const fo  = document.getElementById('fOwn').value;
   const vis = getVisible();
   updateStats(vis);
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-  const owners = [...new Set([...OWNERS_DEF, ...projects.flatMap(p=>p.tasks.map(t=>t.owner)).filter(Boolean)])].sort();
 
   vis.forEach(p => {
-    const vt = p.tasks.filter(t => {
-      if (!showArchived && t.archived) return false;
-      if (fst && t.status !== fst) return false;
-      if (fo  && t.owner  !== fo)  return false;
-      return true;
-    });
-    const activeTasks = p.tasks.filter(t => !t.archived);
-    const done = p.tasks.filter(t => t.status==='done' && !t.archived).length;
-    const totalVisible = showArchived ? p.tasks.length : activeTasks.length;
-    const tr   = document.createElement('tr'); tr.className = 'proj-row';
-    tr.onclick = () => { p.expanded = !p.expanded; render(); };
-    const taskBadges = p.tasks.length ? p.tasks.slice(0,3).map(t=>`<span class="badge ${BCLS[t.status]}">${STS[t.status]}</span>`).join(' ') : '';
+    const tr = document.createElement('tr'); tr.className = 'proj-row';
     tr.innerHTML = `
-      <td class="exp">${p.expanded?'▾':'▸'}</td>
-      <td style="text-align:center;cursor:pointer;width:22px" onclick="event.stopPropagation();toggleDiamond(${p.id})" title="Marquer comme important">
-        <span style="font-size:14px;color:${p.diamond?'#f59e0b':'#ddd'}">${p.diamond?'◆':'◇'}</span>
+      <td class="exp" onclick="event.stopPropagation()"></td>
+      <td style="text-align:center;cursor:pointer;width:18px" onclick="event.stopPropagation();toggleDiamond(${p.id})" title="Marquer comme important">
+        <span style="font-size:13px;color:${p.diamond?'#f59e0b':'#ddd'}">${p.diamond?'◆':'◇'}</span>
       </td>
       <td class="pname">
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px">
           <span>${p.company}</span>
-          <button onclick="event.stopPropagation();openClientView('${p.company.replace(/'/g,"\\'")}','${p.mailid}')" title="Fiche client" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#888;flex-shrink:0">👤</button>
-          <button onclick="event.stopPropagation();openEditProject(${p.id})" title="Modifier" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#555;flex-shrink:0">✎</button>
+          <button onclick="event.stopPropagation();openClientView('${p.company.replace(/'/g,"\\'")}','${p.mailid}')" title="Fiche client" style="font-size:8px;padding:1px 3px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#888;flex-shrink:0">👤</button>
+          <button onclick="event.stopPropagation();openEditProject(${p.id})" title="Modifier" style="font-size:8px;padding:1px 3px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#555;flex-shrink:0">✎</button>
         </div>
       </td>
       <td style="color:#888;font-size:10px">${p.country}</td>
@@ -908,42 +967,8 @@ function render() {
       <td class="mid-cell" onclick="event.stopPropagation();copyMailId('${p.mailid}')" style="cursor:pointer;color:#2563eb;text-decoration:underline dotted">${p.mailid}</td>
       <td class="amt">${p.amount}</td>
       <td style="font-size:10px;color:#aaa">${p.target}</td>
-      <td style="font-size:10px;color:#aaa">${done}/${totalVisible}${p.tasks.filter(t=>t.archived).length>0&&!showArchived?` <span style="color:#f59e0b;font-size:9px">(+${p.tasks.filter(t=>t.archived).length}📦)</span>`:''}</td>
-      <td colspan="2" style="font-size:10px">${!p.expanded&&vt.length?vt.slice(0,2).map(t=>`<span class="badge ${BCLS[t.status]}">${STS[t.status]}</span>`).join(' '):''}</td>
       <td><button class="del-btn" onclick="event.stopPropagation();deleteProject(${p.id})" title="Supprimer">✕</button></td>`;
     tbody.appendChild(tr);
-
-    if (p.expanded) {
-      const tasksToShow = vt;
-      tasksToShow.forEach(t => {
-        const tr2 = document.createElement('tr'); tr2.className = 'task-row';
-        tr2.innerHTML = `
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td style="color:#333;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="${t.text}"><strong style="color:#555;font-size:10px">${t.archived?'📦 ':''}</strong><strong style="color:#555;font-size:10px">${t.text}</strong>${t.note?`<span style="color:#bbb;font-size:10px;margin-left:4px">${t.note}</span>`:''}</td>
-          <td><select class="isel" onchange="setSt(${p.id},${t.id},this.value)" onclick="event.stopPropagation()">
-            ${Object.entries(STS).map(([v,l])=>`<option value="${v}"${t.status===v?' selected':''}>${l}</option>`).join('')}
-          </select></td>
-          <td><input class="isel" list="own-dl-${p.id}-${t.id}" value="${t.owner||''}" onchange="setOwn(${p.id},${t.id},this.value)" onclick="event.stopPropagation()" style="width:80px">
-            <datalist id="own-dl-${p.id}-${t.id}">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
-          </td>
-          <td><button class="del-btn" onclick="event.stopPropagation();delT(${p.id},${t.id})">✕</button></td>`;
-        tr2.style.opacity = t.archived ? '0.55' : '1';
-        tbody.appendChild(tr2);
-      });
-      const ar = document.createElement('tr'); ar.className = 'task-row';
-      ar.innerHTML = `<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td><button class="add-t" onclick="event.stopPropagation();openModal(${p.id})">+ tâche</button></td><td></td><td></td><td></td>`;
-      tbody.appendChild(ar);
-    }
   });
   applyColVisibility();
 }
@@ -1003,9 +1028,7 @@ function delT(pid, tid) {
 function toggleArchived() {
   showArchived = !showArchived;
   const btn = document.getElementById('btn-show-archived');
-  btn.style.background = showArchived ? '#f59e0b' : '#fff';
-  btn.style.color = showArchived ? '#fff' : '#aaa';
-  btn.style.borderColor = showArchived ? '#f59e0b' : '#ddd';
+  if (btn) { btn.style.background = showArchived ? '#f59e0b' : '#fff'; btn.style.color = showArchived ? '#fff' : '#aaa'; }
   render();
 }
 
@@ -1219,8 +1242,8 @@ function switchTab(tab) {
     const btn = document.getElementById('tab-'+t);
     if (!btn) return;
     btn.style.cssText = t===tab
-      ? 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
-      : 'font-size:12px;padding:9px 20px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
+      ? 'font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
+      : 'font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
   });
   if (tab === 'busdev') renderBD();
   if (tab === 'clients') renderClients();
@@ -1550,8 +1573,167 @@ function openClientView(company, mailid) {
   switchTab('clients');
 }
 
+// ─── ACTION PAD ───────────────────────────────────────────────────────────────
+function renderActionPad() {
+  const body = document.getElementById('action-pad-body');
+  if (!body) return;
+  body.innerHTML = '';
+  apData.forEach(g => {
+    const gDiv = document.createElement('div');
+    gDiv.className = 'ap-group';
+
+    // Group header
+    const gh = document.createElement('div');
+    gh.className = 'ap-group-header';
+    gh.innerHTML = `
+      <span style="font-size:10px;color:#bbb;margin-right:2px;cursor:pointer" onclick="apToggleGroup(${g.id})">${g.collapsed?'▸':'▾'}</span>
+      <input class="ap-group-name" value="${g.name.replace(/"/g,'&quot;')}" placeholder="Client / Groupe..." 
+        onblur="apRenameGroup(${g.id},this.value)" 
+        onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}">
+      <button class="ap-del" onclick="apDelGroup(${g.id})">✕</button>`;
+    gDiv.appendChild(gh);
+
+    if (!g.collapsed) {
+      const itemsDiv = document.createElement('div');
+      g.items.forEach(it => {
+        const ownerClass = !it.owner ? 'none' : it.owner===ME ? 'me' : 'other';
+        const owners = [...new Set([ME, ...OWNERS_DEF, ...apData.flatMap(ag=>ag.items.map(i=>i.owner).filter(Boolean))])];
+        const itDiv = document.createElement('div');
+        itDiv.className = `ap-item${it.level===2?' level2':''}`;
+        itDiv.style.opacity = it.done ? '0.4' : '1';
+        itDiv.innerHTML = `
+          <span style="font-size:9px;color:${it.done?'#4ade80':'#ddd'};cursor:pointer;flex-shrink:0;margin-top:2px" onclick="apToggleDone(${g.id},${it.id})">${it.done?'✓':'○'}</span>
+          <textarea class="ap-item-text" rows="1" placeholder="Action..." 
+            onblur="apEditItem(${g.id},${it.id},this.value)"
+            onkeydown="apItemKeydown(event,${g.id},${it.id})"
+            style="text-decoration:${it.done?'line-through':'none'}">${it.text.replace(/</g,'&lt;')}</textarea>
+          <input class="ap-owner ${ownerClass}" list="ap-own-dl-${it.id}" value="${it.owner||''}" placeholder="+" 
+            onchange="apSetOwner(${g.id},${it.id},this.value)"
+            onclick="event.stopPropagation()"
+            style="width:56px;text-align:center;cursor:text">
+          <datalist id="ap-own-dl-${it.id}">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
+          <button class="ap-del" onclick="apDelItem(${g.id},${it.id})">✕</button>`;
+        // Auto-resize textarea
+        const ta = itDiv.querySelector('textarea');
+        ta.style.height = 'auto';
+        setTimeout(()=>{ ta.style.height = ta.scrollHeight+'px'; },0);
+        ta.addEventListener('input', ()=>{ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; });
+        itemsDiv.appendChild(itDiv);
+      });
+      // Add item buttons
+      const addDiv = document.createElement('div');
+      addDiv.innerHTML = `
+        <button class="ap-add-item" onclick="apAddItem(${g.id},1)">+ action</button>
+        <button class="ap-add-item level2" style="padding-left:34px" onclick="apAddItem(${g.id},2)">+ sous-action</button>`;
+      itemsDiv.appendChild(addDiv);
+      gDiv.appendChild(itemsDiv);
+    }
+    body.appendChild(gDiv);
+  });
+
+  // Add group button
+  const addGrp = document.createElement('button');
+  addGrp.id = 'ap-add-group';
+  addGrp.textContent = '+ Groupe / Client';
+  addGrp.onclick = apAddGroup;
+  body.appendChild(addGrp);
+}
+
+function apAddGroup() {
+  apData.push({ id: apNextId++, name: '', collapsed: false, items: [] });
+  renderActionPad();
+  scheduleApSave();
+  // Focus the new group name input
+  const inputs = document.querySelectorAll('.ap-group-name');
+  if (inputs.length) inputs[inputs.length-1].focus();
+}
+
+function apToggleGroup(gid) {
+  const g = apData.find(x=>x.id===gid);
+  if (g) { g.collapsed = !g.collapsed; renderActionPad(); scheduleApSave(); }
+}
+
+function apRenameGroup(gid, val) {
+  const g = apData.find(x=>x.id===gid);
+  if (g) { g.name = val.trim(); scheduleApSave(); }
+}
+
+function apDelGroup(gid) {
+  if (apData.find(x=>x.id===gid)?.items.length > 0 && !confirm('Supprimer ce groupe et toutes ses actions ?')) return;
+  apData = apData.filter(x=>x.id!==gid);
+  renderActionPad(); scheduleApSave();
+}
+
+function apAddItem(gid, level) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  g.items.push({ id: apNextId++, text: '', owner: '', level, done: false });
+  renderActionPad(); scheduleApSave();
+  // Focus last textarea in this group
+  const tas = document.querySelectorAll('.ap-item-text');
+  if (tas.length) tas[tas.length-1].focus();
+}
+
+function apEditItem(gid, iid, val) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (it) { it.text = val.trim(); scheduleApSave(); }
+}
+
+function apItemKeydown(e, gid, iid) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    const g = apData.find(x=>x.id===gid);
+    const it = g?.items.find(x=>x.id===iid);
+    apAddItem(gid, it?.level||1);
+  }
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const g = apData.find(x=>x.id===gid);
+    const it = g?.items.find(x=>x.id===iid);
+    if (it) { it.level = it.level===1?2:1; renderActionPad(); scheduleApSave(); }
+  }
+}
+
+function apToggleDone(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (it) { it.done = !it.done; renderActionPad(); scheduleApSave(); }
+}
+
+function apDelItem(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  if (g) { g.items = g.items.filter(x=>x.id!==iid); renderActionPad(); scheduleApSave(); }
+}
+
+function apSetOwner(gid, iid, val) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.owner = val.trim();
+  // update styling without full re-render
+  const input = document.querySelector(`#ap-own-dl-${iid}`)?.previousElementSibling;
+  if (input) {
+    input.className = 'ap-owner ' + (!it.owner ? 'none' : it.owner===ME ? 'me' : 'other');
+  }
+  scheduleApSave();
+}
+
+function apCycleOwner(gid, iid) { /* replaced by apSetOwner */ }
+
+function apCollapseAll() { apData.forEach(g=>g.collapsed=true); renderActionPad(); scheduleApSave(); }
+function apExpandAll()   { apData.forEach(g=>g.collapsed=false); renderActionPad(); scheduleApSave(); }
+
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 window.onload = () => {
+  // Safety timeout — if gapi never loads, show auth screen anyway
+  setTimeout(() => {
+    const loading = document.getElementById('loading');
+    if (loading && loading.style.display !== 'none') {
+      loading.style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+  }, 5000);
   initGoogle();
   if (!IS_ELECTRON && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 };
