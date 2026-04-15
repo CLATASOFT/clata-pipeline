@@ -84,12 +84,7 @@ th.sort-asc::after{content:' ▲';font-size:8px}
 th.sort-desc::after{content:' ▼';font-size:8px}
 .exp{width:10px;color:#bbb;font-size:10px;user-select:none;text-align:center}
 
-/* ACTION PAD */
-#action-pad{width:280px;flex-shrink:0;border-left:1px solid #e5e5e5;display:flex;flex-direction:column;background:#fff;overflow:hidden;min-width:160px;max-width:500px}
-#action-pad-header{padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#action-pad-header span{font-size:11px;font-weight:600;color:#1a1a1a}
-#action-pad-header button{font-size:10px;padding:2px 7px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#555}
-#action-pad-body{flex:1;overflow-y:auto;padding:6px 0}
+@media(max-width:700px){#action-pad{display:none}}
 .ap-group{margin-bottom:2px}
 .ap-group-header{display:flex;align-items:center;gap:4px;padding:4px 8px;cursor:pointer;border-radius:4px;margin:0 4px}
 .ap-group-header:hover{background:#f5f5f5}
@@ -116,7 +111,30 @@ th.sort-desc::after{content:' ▼';font-size:8px}
 #ap-resize{width:4px;cursor:col-resize;background:transparent;flex-shrink:0}
 #ap-resize:hover{background:#e5e5e5}
 @media(max-width:700px){#action-pad{display:none}}
-#modal-area .ov{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+
+/* RIGHT PANEL */
+#right-panel{position:relative}
+.rp-group{margin-bottom:1px}
+.rp-group-hdr{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#f5f5f5;border-bottom:1px solid #eee;flex-shrink:0}
+.rp-group-hdr:hover{background:#ebebeb}
+.rp-group-name{font-size:11px;font-weight:700;color:#1a1a1a;flex:1;border:none;background:transparent;outline:none;cursor:text;padding:0;min-width:0}
+.rp-group-name:focus{background:#f0f4ff;border-radius:3px;padding:0 3px}
+.rp-item{display:flex;align-items:center;gap:3px;padding:3px 6px 3px 14px;border-bottom:1px solid #f8f8f8;min-height:20px}
+.rp-item.level2{padding-left:24px}
+.rp-item:hover{background:#f9f9f9}
+.rp-item.priority{background:#fffbeb;border-left:2px solid #f59e0b}
+.rp-item-text{font-size:10px;color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:none;background:transparent;outline:none;cursor:text;padding:0}
+.rp-owner{font-size:9px;padding:1px 4px;border-radius:3px;border:1px solid transparent;font-weight:600;flex-shrink:0;cursor:pointer;white-space:nowrap}
+.rp-owner.me{background:#fff3e0;color:#e65100}
+.rp-owner.other{background:#e8f5e9;color:#2e7d32}
+.rp-owner.none{background:#f5f5f5;color:#ccc}
+.rp-date{font-size:8px;flex-shrink:0;white-space:nowrap;color:#aaa}
+.rp-date.overdue{color:#ef4444;font-weight:600}
+.rp-star{font-size:10px;cursor:pointer;flex-shrink:0;color:#ddd;background:none;border:none;padding:0}
+.rp-star.on{color:#f59e0b}
+.rp-del{opacity:0;background:none;border:none;cursor:pointer;color:#ddd;font-size:10px;flex-shrink:0;padding:0}
+.rp-item:hover .rp-del,.rp-group-hdr:hover .rp-del{opacity:1}
+@media(max-width:700px){#right-panel{display:none}}{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
 .modal{background:#fff;border-radius:12px;padding:20px;width:300px;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,0.15)}
 .modal h3{font-size:14px;font-weight:700;color:#1a1a1a}
 .modal label{font-size:10px;color:#888;margin-bottom:2px;display:block}
@@ -241,14 +259,19 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button id="tab-busdev" onclick="switchTab('busdev')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Bus Dev</button>
     <button id="tab-clients" onclick="switchTab('clients')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">Clients</button>
     <button id="tab-actions" onclick="switchTab('actions')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">⚡ Actions</button>
+    <button id="tab-planning" onclick="switchTab('planning')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">📅 Planning</button>
   </div>
 
   <!-- ACTIONS TAB (mobile full view) -->
   <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#fff">
-    <div style="padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+    <div style="padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
       <span style="font-size:13px;font-weight:600;color:#1a1a1a">⚡ Actions</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button id="ap-filter-btn2" onclick="toggleApFilter()" title="Filtrer par pipeline" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">🔍 Filtre</button>
+      <button id="ap-filter-btn2" onclick="toggleApFilter()" title="Filtrer par pipeline" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">🔍</button>
+      <button id="ap-today-btn" onclick="toggleApToday()" title="Aujourd'hui seulement" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">📅 Today</button>
+      <select id="ap-owner-filter" onchange="renderActionPad()" style="font-size:11px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#555">
+        <option value="">Tous owners</option>
+      </select>
+      <div style="margin-left:auto;display:flex;gap:6px">
         <button onclick="apAddGroup()" style="font-size:11px;padding:3px 8px;border:1px solid #1a1a1a;border-radius:5px;background:#1a1a1a;color:#fff;cursor:pointer">+ Groupe</button>
         <button onclick="apCollapseAll()" style="font-size:13px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#777">−</button>
         <button onclick="apExpandAll()" style="font-size:13px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#777">+</button>
@@ -261,7 +284,7 @@ th.sort-desc::after{content:' ▼';font-size:8px}
   <div id="view-pipeline" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
 
   <div id="toolbar">
-    <input id="search" placeholder="Rechercher..." oninput="render()">
+    <input id="search" placeholder="Rechercher..." oninput="debouncedRender()">
     <div class="sep"></div>
     <label>Phase:</label>
     <div id="phase-dropdown" style="position:relative;display:inline-block">
@@ -283,6 +306,8 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button onclick="openNewProject()" style="font-size:11px;padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;cursor:pointer;color:#fff;font-weight:600">+ Nouvelle ligne</button>
     <div class="sep"></div>
     <button id="btn-filter-diamond" onclick="toggleFilterDiamond()" title="Lignes importantes seulement" style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">◆</button>
+    <button id="btn-filter-actions" onclick="toggleFilterActions()" title="Lignes avec actions seulement" style="font-size:11px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#aaa">⚡</button>
+    <button id="btn-expand-all" onclick="toggleAllProjExpand()" title="Déplier/replier toutes les actions" style="font-size:11px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#666">⚡ ▾</button>
     <div style="position:relative;display:inline-block">
       <button onclick="toggleColDD(event)" style="font-size:11px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#444">Colonnes ▾</button>
       <div id="col-dd" style="display:none;position:absolute;top:100%;right:0;z-index:200;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);padding:6px 0;min-width:150px" onclick="event.stopPropagation()">
@@ -297,9 +322,22 @@ th.sort-desc::after{content:' ▼';font-size:8px}
 
   <div id="stats-bar"></div>
 
+  <!-- GLOBAL FILTERS BAR -->
+  <div style="background:#fff8f0;border-bottom:1px solid #fde68a;padding:4px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0;font-size:11px">
+    <span style="color:#92400e;font-weight:600">🎯 Filtres globaux:</span>
+    <select id="global-owner" onchange="applyGlobalFilters()" style="font-size:11px;padding:2px 6px;border:1px solid #fde68a;border-radius:5px;background:#fff;color:#555">
+      <option value="">Tous owners</option>
+    </select>
+    <button id="gf-today" onclick="setGlobalDate('today')" style="font-size:11px;padding:2px 8px;border:1px solid #fde68a;border-radius:5px;background:#fff;cursor:pointer;color:#92400e">📅 Aujourd'hui</button>
+    <button id="gf-week" onclick="setGlobalDate('week')" style="font-size:11px;padding:2px 8px;border:1px solid #fde68a;border-radius:5px;background:#fff;cursor:pointer;color:#92400e">📅 Cette semaine</button>
+    <button id="gf-clear" onclick="clearGlobalFilters()" style="font-size:11px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">✕ Reset</button>
+    <span id="gf-status" style="color:#888;font-size:10px"></span>
+  </div>
+
   <div id="table-wrap">
-    <table>
-      <thead id="thead"><tr>
+    <table id="pipeline-table">
+      <thead id="thead">
+      <tr id="gantt-header-row">
         <th style="width:10px"></th>
         <th style="width:14px">◆</th>
         <th class="sortable" style="width:110px" onclick="sortBy('company')">Société</th>
@@ -312,8 +350,11 @@ th.sort-desc::after{content:' ▼';font-size:8px}
         <th style="width:70px">Statut</th>
         <th class="sortable" style="width:32px" onclick="sortBy('amount')">Amt</th>
         <th style="width:28px">Tgt</th>
-        <th style="width:12px"></th>
-      </tr></thead>
+        <th style="width:48px"></th>
+        <th id="gantt-sep-th" style="width:2px;background:#e5e5e5;padding:0"></th>
+        <!-- gantt day headers appended here by JS -->
+      </tr>
+      </thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
@@ -384,21 +425,91 @@ th.sort-desc::after{content:' ▼';font-size:8px}
         <div style="color:#bbb;font-size:13px;text-align:center;margin-top:60px">Sélectionne un client</div>
       </div>
     </div>
-  </div>
-  </div><!-- end inner flex column -->
+  </div><!-- end view-clients -->
 
-  <!-- ACTION PAD -->
-  <div id="ap-resize"></div>
-  <div id="action-pad">
-    <div id="action-pad-header">
-      <span>⚡ Actions</span>
-      <div style="display:flex;gap:4px;align-items:center">
-        <button id="ap-filter-btn" onclick="toggleApFilter()" title="Filtrer par sélection pipeline" style="font-size:9px;padding:2px 5px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#aaa">🔍</button>
-        <button onclick="apCollapseAll()" title="Tout replier">−</button>
-        <button onclick="apExpandAll()" title="Tout déplier">+</button>
-      </div>
+
+  <!-- PLANNING TAB -->
+  <div id="view-planning" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#f8f9fa">
+    <div id="planning-toolbar" style="background:#fff;border-bottom:1px solid #e5e5e5;padding:5px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <button onclick="planningNav(-1)" style="font-size:13px;padding:2px 10px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer">◀</button>
+      <button onclick="planningNav(0)" style="font-size:11px;padding:2px 10px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer">Aujourd'hui</button>
+      <button onclick="planningNav(1)" style="font-size:13px;padding:2px 10px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer">▶</button>
+      <span id="planning-label" style="font-size:12px;font-weight:600;color:#1a1a1a;min-width:200px;text-align:center"></span>
     </div>
-    <div id="action-pad-body"></div>
+    <div id="planning-body" style="flex:1;display:flex;overflow:hidden;padding:0"></div>
+  </div>
+
+
+  </div><!-- end content+pad wrapper inner -->
+
+  <!-- RIGHT PANEL: Actions Table -->
+  <div id="right-panel" style="width:680px;min-width:300px;flex-shrink:0;border-left:2px solid #e5e5e5;display:flex;flex-direction:column;background:#fff;overflow:hidden;position:relative">
+    <!-- Resize handle -->
+    <div id="rp-resize" style="position:absolute;left:0;top:0;bottom:0;width:5px;cursor:col-resize;background:transparent;z-index:10"></div>
+    <!-- Header -->
+    <div style="padding:5px 8px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;background:#fafafa">
+      <span style="font-size:11px;font-weight:700;color:#1a1a1a">⚡ Actions</span>
+      <input id="rp-quick-text" placeholder="+ Nouvelle action (Entrée)..." style="flex:1;font-size:10px;padding:3px 7px;border:1px solid #ddd;border-radius:4px;outline:none" onkeydown="if(event.key==='Enter')rpQuickAdd()">
+      <button onclick="rpQuickAdd()" style="font-size:10px;padding:3px 8px;border:1px solid #1a1a1a;border-radius:4px;background:#1a1a1a;color:#fff;cursor:pointer;flex-shrink:0">+</button>
+      <button id="rp-filter-btn" onclick="toggleRpFilter()" title="Filtrer pipeline" style="font-size:9px;padding:2px 5px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;color:#aaa;flex-shrink:0">🔍</button>
+    </div>
+    <!-- Table -->
+    <div style="flex:1;overflow:auto">
+      <table id="rp-table" style="width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed">
+        <colgroup>
+          <col style="width:26px"><!-- priority/urgent -->
+          <col style="width:110px"><!-- account -->
+          <col style="width:60px"><!-- solution -->
+          <col style="width:55px"><!-- phase -->
+          <col style="width:70px"><!-- mailid -->
+          <col><!-- action (flex) -->
+          <col style="width:52px"><!-- owner -->
+          <col style="width:58px"><!-- due date -->
+          <col style="width:24px"><!-- done -->
+        </colgroup>
+        <thead id="rp-thead">
+          <tr style="background:#f5f5f5;position:sticky;top:0;z-index:5">
+            <th style="padding:3px 2px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:center;font-size:9px;color:#888;cursor:pointer" onclick="rpSort('flag')" title="Urgent/Priorité">!</th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555;cursor:pointer" onclick="rpSort('account')">
+              <div style="display:flex;align-items:center;gap:2px">Account<span id="rp-sort-account" style="color:#bbb;font-size:8px"></span></div>
+              <input id="rpf-account" placeholder="Filtre..." oninput="renderRightPanel()" style="width:100%;font-size:9px;padding:1px 3px;border:1px solid #e0e0e0;border-radius:3px;margin-top:2px;box-sizing:border-box">
+            </th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555;cursor:pointer" onclick="rpSort('solution')">
+              <div>Sol<span id="rp-sort-solution" style="color:#bbb;font-size:8px"></span></div>
+              <select id="rpf-solution" onchange="renderRightPanel()" style="width:100%;font-size:9px;padding:1px;border:1px solid #e0e0e0;border-radius:3px;margin-top:2px"><option value="">Tous</option></select>
+            </th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555">
+              <div>Phase</div>
+              <select id="rpf-phase" onchange="renderRightPanel()" style="width:100%;font-size:9px;padding:1px;border:1px solid #e0e0e0;border-radius:3px;margin-top:2px"><option value="">Tous</option></select>
+            </th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555">
+              <div>Mail ID</div>
+            </th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555;cursor:pointer" onclick="rpSort('action')">
+              <div>Action<span id="rp-sort-action" style="color:#bbb;font-size:8px"></span></div>
+              <input id="rpf-action" placeholder="Filtre..." oninput="renderRightPanel()" style="width:100%;font-size:9px;padding:1px 3px;border:1px solid #e0e0e0;border-radius:3px;margin-top:2px;box-sizing:border-box">
+            </th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555;cursor:pointer" onclick="rpSort('owner')">
+              <div>Owner<span id="rp-sort-owner" style="color:#bbb;font-size:8px"></span></div>
+              <select id="rpf-owner" onchange="renderRightPanel()" style="width:100%;font-size:9px;padding:1px;border:1px solid #e0e0e0;border-radius:3px;margin-top:2px"><option value="">Tous</option></select>
+            </th>
+            <th style="padding:3px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555;cursor:pointer" onclick="rpSort('date')">
+              <div>Due<span id="rp-sort-date" style="color:#bbb;font-size:8px"></span></div>
+              <select id="rpf-date" onchange="renderRightPanel()" style="width:100%;font-size:9px;padding:1px;border:1px solid #e0e0e0;border-radius:3px;margin-top:2px">
+                <option value="">Toutes</option>
+                <option value="today">Aujourd'hui</option>
+                <option value="week">Semaine</option>
+                <option value="overdue">En retard</option>
+              </select>
+            </th>
+            <th style="padding:3px 2px;border-bottom:2px solid #e0e0e0;text-align:center;color:#555">✓</th>
+          </tr>
+        </thead>
+        <tbody id="rp-tbody"></tbody>
+      </table>
+    </div>
+    <!-- Footer: archives -->
+    <div id="rp-footer" style="border-top:1px solid #e5e5e5;flex-shrink:0"></div>
   </div>
 
   </div><!-- end content+pad wrapper -->
@@ -587,11 +698,18 @@ let sortCol = null;
 let sortDir = 'asc';
 let filterTasks = false;
 let filterDiamond = false;
+let filterActions = false;
 let showArchived = false;
 let selectedClientId = null;
-let apData = []; // [{id, name, collapsed, items:[{id,text,owner,level,done}]}]
+let apData = []; // [{id, name, mailid, collapsed, items:[{id,text,owner,level,done,date}]}]
 let apNextId = 1;
 const ME = 'Niko';
+
+// Global filters
+let globalOwnerFilter = '';
+let globalDateFilter = '';
+const projExpanded = {};
+let allProjExpanded = false;
 
 // columns: key, label, index in tr (0-based, skip expand col=0)
 const COLS = [
@@ -627,6 +745,8 @@ async function loadAll() {
     initFilters();
     render();
     renderActionPad();
+    renderRightPanel();
+    populateGlobalOwner();
     initApResize();
     showSync('ok', 'Synchronisé');
   } catch(e) {
@@ -702,7 +822,7 @@ async function saveClients() {
 }
 
 async function loadActions() {
-  const rows = await sheetsGet(`${ACTIONS_SHEET}!A2:F1000`);
+  const rows = await sheetsGet(`${ACTIONS_SHEET}!A2:H1000`);
   apData = [];
   let maxId = 0;
   let curGroup = null;
@@ -712,7 +832,7 @@ async function loadActions() {
     if (id > maxId) maxId = id;
     const level = parseInt(r[0]||'0');
     if (level === 0) {
-      curGroup = { id, name: r[1]||'', collapsed: r[3]==='1', items: [] };
+      curGroup = { id, name: r[1]||'', mailid: r[6]||'', dealLabel: r[7]||'', collapsed: r[3]==='1', items: [] };
       apData.push(curGroup);
     } else if (curGroup) {
       curGroup.items.push({ id, text: r[1]||'', owner: r[2]||'', level, done: r[3]==='done', date: r[5]||'' });
@@ -723,17 +843,432 @@ async function loadActions() {
 
 async function saveActions() {
   try {
-    const rows = [['level','text','owner','extra','id','date']];
+    const rows = [['level','text','owner','extra','id','date','mailid','dealLabel']];
     apData.forEach(g => {
-      rows.push([0, g.name, '', g.collapsed?'1':'', g.id, '']);
-      g.items.forEach(it => rows.push([it.level, it.text, it.owner||'', it.done?'done':'', it.id, it.date||'']));
+      rows.push([0, g.name, '', g.collapsed?'1':'', g.id, '', g.mailid||'', g.dealLabel||'']);
+      g.items.forEach(it => rows.push([it.level, it.text, it.owner||'', it.done?'done':'', it.id, it.date||'', '', '']));
     });
-    await sheetsClear(`${ACTIONS_SHEET}!A1:F1000`);
+    await sheetsClear(`${ACTIONS_SHEET}!A1:H1000`);
     await sheetsUpdate(`${ACTIONS_SHEET}!A1`, rows);
   } catch(e) { console.error('saveActions:', e); }
 }
 let apSaveTimeout = null;
 function scheduleApSave() { clearTimeout(apSaveTimeout); apSaveTimeout = setTimeout(saveActions, 1500); }
+
+// ─── RIGHT PANEL ──────────────────────────────────────────────────────────────
+let rpFilterActive = false;
+
+function toggleRpFilter() {
+  rpFilterActive = !rpFilterActive;
+  const btn = document.getElementById('rp-filter-btn');
+  if (btn) { btn.style.background = rpFilterActive?'#1a1a1a':'#fff'; btn.style.color = rpFilterActive?'#fff':'#aaa'; }
+  renderRightPanel();
+}
+
+function rpCollapseAll() { apData.forEach(g => g.collapsed = true); renderRightPanel(); scheduleApSave(); }
+function rpExpandAll()   { apData.forEach(g => g.collapsed = false); renderRightPanel(); scheduleApSave(); }
+
+function rpQuickAdd() {
+  const inp = document.getElementById('rp-quick-text');
+  const text = inp?.value.trim();
+  if (!text) return;
+  // Default group: "Divers"
+  let g = apData.find(x => x.name === 'Divers' && x.mailid === '__divers__');
+  if (!g) {
+    g = { id: apNextId++, name: 'Divers', mailid: '__divers__', dealLabel:'', collapsed:false, items:[] };
+    apData.unshift(g); // put at top
+  }
+  g.items.push({ id: apNextId++, text, owner: ME, level:1, done:false, date: fmtDate(new Date()), priority:false });
+  inp.value = '';
+  scheduleApSave();
+  renderRightPanel();
+  populateGlobalOwner();
+  render();
+}
+
+function rpAddGroup() {
+  const name = prompt('Nom du groupe / client :');
+  if (!name) return;
+  apData.push({ id: apNextId++, name, mailid: '__grp_'+apNextId, dealLabel:'', collapsed:false, items:[] });
+  scheduleApSave();
+  renderRightPanel();
+}
+
+function rpEditRow(gid, iid) {
+  _guardModal();
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  const owners = [...new Set([ME, ...OWNERS_DEF, ...apData.flatMap(ag=>ag.items.map(i=>i.owner).filter(Boolean))])];
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div class="modal" style="width:380px">
+        <h3>✎ Modifier action</h3>
+        <div style="font-size:10px;color:#6366f1;margin-top:-6px;margin-bottom:8px;font-weight:600">${g.name}${g.dealLabel?' · '+g.dealLabel:''}</div>
+        <div><label>Action *</label>
+          <input id="rpe-text" value="${it.text.replace(/"/g,'&quot;')}" style="width:100%">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <div><label>Owner</label>
+            <input id="rpe-owner" list="rpe-own-dl" value="${it.owner||''}" placeholder="${ME}" style="width:100%">
+            <datalist id="rpe-own-dl">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
+          </div>
+          <div><label>Date limite</label>
+            <input type="date" id="rpe-date" value="${it.date||''}" style="width:100%;font-size:12px;padding:5px;border:1px solid #ddd;border-radius:5px">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <div><label>Niveau</label>
+            <select id="rpe-level" style="width:100%;font-size:12px;padding:5px;border:1px solid #ddd;border-radius:5px">
+              <option value="1"${it.level===1?' selected':''}>⚡ Action</option>
+              <option value="2"${it.level===2?' selected':''}>└ Sous-action</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;padding-top:4px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px">
+              <input type="checkbox" id="rpe-priority" ${it.priority?'checked':''} style="cursor:pointer"> ★ Priorité
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px">
+              <input type="checkbox" id="rpe-today" ${it.todayFlag?'checked':''} style="cursor:pointer"> 🔴 Urgent aujourd'hui
+            </label>
+          </div>
+        </div>
+        <div class="mbtns" style="margin-top:12px">
+          <button onclick="rpDeleteItem(${gid},${iid});closeModal()" style="color:#ef4444;border-color:#fca5a5;margin-right:auto">Supprimer</button>
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="rpSaveEdit(${gid},${iid})">Enregistrer</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('rpe-text').focus();
+}
+
+function rpSaveEdit(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  const text = document.getElementById('rpe-text').value.trim();
+  if (!text) { document.getElementById('rpe-text').style.borderColor='#e00'; return; }
+  it.text     = text;
+  it.owner    = document.getElementById('rpe-owner').value.trim();
+  it.date     = document.getElementById('rpe-date').value;
+  it.level    = parseInt(document.getElementById('rpe-level').value);
+  it.priority = document.getElementById('rpe-priority').checked;
+  it.todayFlag= document.getElementById('rpe-today').checked;
+  closeModal();
+  scheduleApSave();
+  renderRightPanel();
+  render();
+}
+
+function rpToggleTodayFlag(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.todayFlag = !it.todayFlag;
+  scheduleApSave(); renderRightPanel();
+}
+
+function rpTogglePriority(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  const it = g.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.priority = !it.priority;
+  scheduleApSave();
+  renderRightPanel();
+}
+
+function rpToggleDone(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  const it = g.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.done = !it.done;
+  // Auto-archive when marked done
+  if (it.done) it.archived = true;
+  else it.archived = false;
+  scheduleApSave();
+  renderRightPanel();
+  render();
+}
+
+function rpDeleteItem(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  g.items = g.items.filter(x=>x.id!==iid);
+  scheduleApSave();
+  renderRightPanel();
+  render();
+}
+
+function rpMoveItem(fromGid, iid) {
+  _guardModal();
+  const fromG = apData.find(x=>x.id===fromGid);
+  const it = fromG?.items.find(x=>x.id===iid);
+  if (!it) return;
+  const targets = apData.filter(x=>x.id!==fromGid);
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div class="modal" style="width:300px">
+        <h3>↗ Déplacer vers...</h3>
+        <div style="font-size:10px;color:#888;margin-bottom:8px">"${it.text}"</div>
+        <select id="rp-move-target" style="width:100%;font-size:12px;padding:6px;border:1px solid #ddd;border-radius:6px">
+          ${targets.map(g=>`<option value="${g.id}">${g.name}${g.dealLabel?' · '+g.dealLabel:''}</option>`).join('')}
+        </select>
+        <div class="mbtns" style="margin-top:10px">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="rpConfirmMove(${fromGid},${iid})">Déplacer</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function rpConfirmMove(fromGid, iid) {
+  const toGid = parseInt(document.getElementById('rp-move-target').value);
+  const fromG = apData.find(x=>x.id===fromGid);
+  const toG   = apData.find(x=>x.id===toGid);
+  if (!fromG || !toG) return;
+  const idx = fromG.items.findIndex(x=>x.id===iid);
+  if (idx===-1) return;
+  const [it] = fromG.items.splice(idx,1);
+  toG.items.push(it);
+  closeModal();
+  scheduleApSave();
+  renderRightPanel();
+  render();
+}
+
+function rpArchiveItem(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.archived = true;
+  scheduleApSave(); renderRightPanel();
+}
+
+function rpArchiveAll(gid) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  g.items.filter(x=>x.done && !x.archived).forEach(it => it.archived = true);
+  scheduleApSave(); renderRightPanel();
+}
+
+function rpUnarchiveItem(gid, iid) {
+  const g = apData.find(x=>x.id===gid);
+  const it = g?.items.find(x=>x.id===iid);
+  if (!it) return;
+  it.archived = false; it.done = false;
+  scheduleApSave(); renderRightPanel();
+}
+
+function rpDeleteAllArchived() {
+  if (!confirm('Supprimer définitivement toutes les archives ?')) return;
+  apData.forEach(g => { g.items = g.items.filter(x=>!x.archived); });
+  scheduleApSave(); renderRightPanel();
+}
+
+function rpDeleteGroup(gid) {
+  if (!confirm('Supprimer ce groupe et toutes ses actions ?')) return;
+  const idx = apData.findIndex(x=>x.id===gid);
+  if (idx!==-1) apData.splice(idx,1);
+  scheduleApSave();
+  renderRightPanel();
+}
+
+function rpEditItem(gid, iid, val) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  const it = g.items.find(x=>x.id===iid);
+  if (it && val.trim()) { it.text = val.trim(); scheduleApSave(); }
+}
+
+function rpRenameGroup(gid, val) {
+  const g = apData.find(x=>x.id===gid);
+  if (g && val.trim()) { g.name = val.trim(); scheduleApSave(); }
+}
+
+function rpAddItem(gid) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  const text = prompt('Nouvelle action :');
+  if (!text?.trim()) return;
+  g.items.push({ id:apNextId++, text:text.trim(), owner:ME, level:1, done:false, date:fmtDate(new Date()), priority:false });
+  scheduleApSave();
+  renderRightPanel();
+  render();
+}
+
+let rpSortCol = 'flag', rpSortDir = 1;
+
+function rpSort(col) {
+  if (rpSortCol === col) rpSortDir *= -1;
+  else { rpSortCol = col; rpSortDir = 1; }
+  ['flag','account','solution','action','owner','date'].forEach(c => {
+    const el = document.getElementById('rp-sort-'+c);
+    if (el) el.textContent = c===col ? (rpSortDir===1?' ↑':' ↓') : '';
+  });
+  renderRightPanel();
+}
+
+function renderRightPanel() {
+  const tbody = document.getElementById('rp-tbody');
+  if (!tbody) return;
+
+  const allItems = apData.flatMap(g => g.items.filter(it=>!it.archived&&!it.done).map(it=>({...it,gid:g.id,groupName:g.name,dealLabel:g.dealLabel||'',gMailid:g.mailid||''})));
+  const solutions = [...new Set(allItems.map(it=>{ const p=projects.find(px=>px.mailid===it.gMailid||('__pid_'+px.id)===it.gMailid); return p?.solution||''; }).filter(Boolean))].sort();
+  const phases    = [...new Set(allItems.map(it=>{ const p=projects.find(px=>px.mailid===it.gMailid||('__pid_'+px.id)===it.gMailid); return p?.phase||''; }).filter(Boolean))].sort();
+  const owners    = [...new Set(allItems.map(it=>it.owner).filter(Boolean))].sort();
+
+  function populateSel(id, vals) {
+    const s = document.getElementById(id); if(!s) return;
+    const v = s.value;
+    s.innerHTML = '<option value="">Tous</option>' + vals.map(x=>`<option${x===v?' selected':''} value="${x}">${x}</option>`).join('');
+  }
+  populateSel('rpf-solution', solutions);
+  populateSel('rpf-phase',    phases);
+  populateSel('rpf-owner',    owners);
+
+  const fAccount  = (document.getElementById('rpf-account')?.value||''). toLowerCase();
+  const fSolution = document.getElementById('rpf-solution')?.value||'';
+  const fPhase    = document.getElementById('rpf-phase')?.value||'';
+  const fAction   = (document.getElementById('rpf-action')?.value||''). toLowerCase();
+  const fOwner    = document.getElementById('rpf-owner')?.value||'';
+  const fDate     = document.getElementById('rpf-date')?.value||'';
+  const todayStr  = fmtDate(new Date());
+  const weekEnd   = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
+  const weekEndStr = fmtDate(weekEnd);
+
+  let rows = [];
+  apData.forEach(g => {
+    const p = projects.find(px=>px.mailid===g.mailid) || projects.find(px=>('__pid_'+px.id)===g.mailid);
+    const account=g.name, solution=p?.solution||'', phase=p?.phase||'', mailid=p?.mailid||'';
+    g.items.filter(it=>!it.archived&&!it.done).forEach(it=>{
+      rows.push({it, gid:g.id, account, solution, phase, mailid});
+    });
+  });
+
+  rows = rows.filter(r => {
+    if (fAccount  && !r.account.toLowerCase().includes(fAccount)) return false;
+    if (fSolution && r.solution !== fSolution) return false;
+    if (fPhase    && r.phase    !== fPhase)    return false;
+    if (fAction   && !r.it.text.toLowerCase().includes(fAction)) return false;
+    if (fOwner    && r.it.owner !== fOwner)    return false;
+    if (fDate==='today'   && r.it.date !== todayStr) return false;
+    if (fDate==='week'    && !(r.it.date >= todayStr && r.it.date <= weekEndStr)) return false;
+    if (fDate==='overdue' && !(r.it.date && r.it.date < todayStr)) return false;
+    if (rpFilterActive) {
+      const visKeys = new Set(getVisible().map(p=>p.mailid||('__pid_'+p.id)));
+      if (!visKeys.has(r.mailid) && !visKeys.has(r.gid.toString())) return false;
+    }
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    if (a.it.todayFlag && !b.it.todayFlag) return -1;
+    if (!a.it.todayFlag && b.it.todayFlag) return 1;
+    let v = 0;
+    if (rpSortCol==='flag')     v = (b.it.priority?1:0)-(a.it.priority?1:0);
+    if (rpSortCol==='account')  v = a.account.localeCompare(b.account);
+    if (rpSortCol==='solution') v = a.solution.localeCompare(b.solution);
+    if (rpSortCol==='action')   v = a.it.text.localeCompare(b.it.text);
+    if (rpSortCol==='owner')    v = (a.it.owner||''). localeCompare(b.it.owner||'');
+    if (rpSortCol==='date')     v = (a.it.date||'9').localeCompare(b.it.date||'9');
+    return v * rpSortDir;
+  });
+
+  tbody.innerHTML = '';
+
+  function makeRow(r, isUrgent) {
+    const it=r.it, isPast=it.date&&it.date<todayStr;
+    const ownerColor=it.owner===ME?'#e65100':it.owner?'#2e7d32':'#999';
+    const dateDisp=it.date?new Date(it.date+'T00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
+    const tr=document.createElement('tr');
+    tr.style.cssText=`background:${isUrgent?'#fff5f5':it.priority?'#fffbeb':'#fff'};border-bottom:1px solid #f0f0f0`;
+    tr.onmouseenter=()=>tr.style.background=isUrgent?'#fee2e2':it.priority?'#fef9c3':'#f9f9f9';
+    tr.onmouseleave=()=>tr.style.background=isUrgent?'#fff5f5':it.priority?'#fffbeb':'#fff';
+    tr.innerHTML=`
+      <td style="padding:2px;text-align:center;border-right:1px solid #f0f0f0;white-space:nowrap">
+        <span style="cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;font-size:11px" onclick="rpToggleTodayFlag(${r.gid},${it.id})" title="Urgent aujourd'hui">!</span>
+        <span style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:10px" onclick="rpTogglePriority(${r.gid},${it.id})" title="Priorité">★</span>
+      </td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#1a1a1a;font-size:10px" title="${r.account}">${r.account}</td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6366f1;font-size:9px">${r.solution||'—'}</td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#888;font-size:9px">${r.phase||'—'}</td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2563eb;font-size:9px">${r.mailid||'—'}</td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${isPast?'#ef4444':'#222'};font-weight:${it.todayFlag?'600':'400'}" title="${it.text}">
+        ${it.level===2?'<span style="color:#ccc;margin-right:3px">└</span>':''} ${it.text}
+      </td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;text-align:center">
+        <span style="font-size:9px;font-weight:600;padding:1px 4px;border-radius:3px;background:${it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5'};color:${ownerColor}">${it.owner||'+'}</span>
+      </td>
+      <td style="padding:2px 4px;border-right:1px solid #f0f0f0;font-size:9px;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};font-weight:${isPast||it.date===todayStr?'600':'400'};white-space:nowrap">${dateDisp}</td>
+      <td style="padding:2px;text-align:center;white-space:nowrap">
+        <span style="cursor:pointer;color:#bbb;font-size:11px" onclick="rpToggleDone(${r.gid},${it.id})" title="Terminé">○</span>
+        <span style="cursor:pointer;color:#ccc;font-size:10px;margin-left:2px" onclick="rpEditRow(${r.gid},${it.id})" title="Modifier">✎</span>
+      </td>`;
+    return tr;
+  }
+
+  const todayItems=rows.filter(r=>r.it.todayFlag);
+  const restItems=rows.filter(r=>!r.it.todayFlag);
+
+  if (todayItems.length) {
+    const hdr=document.createElement('tr');
+    hdr.innerHTML=`<td colspan="9" style="padding:2px 6px;background:#fee2e2;font-size:8px;font-weight:700;color:#ef4444;letter-spacing:0.5px;border-bottom:1px solid #fca5a5">🔴 URGENT — AUJOURD'HUI (${todayItems.length})</td>`;
+    tbody.appendChild(hdr);
+    todayItems.forEach(r=>tbody.appendChild(makeRow(r,true)));
+    const sep=document.createElement('tr');
+    sep.innerHTML='<td colspan="9" style="padding:0;background:#e5e5e5;height:2px"></td>';
+    tbody.appendChild(sep);
+  }
+
+  restItems.forEach(r=>tbody.appendChild(makeRow(r,false)));
+
+  if (!rows.length) {
+    const e=document.createElement('tr');
+    e.innerHTML='<td colspan="9" style="padding:20px;text-align:center;color:#bbb;font-size:11px">Aucune action active</td>';
+    tbody.appendChild(e);
+  }
+
+  // Archives footer
+  const footer=document.getElementById('rp-footer');
+  if (footer) {
+    const allArchived=apData.flatMap(g=>g.items.filter(x=>x.archived).map(it=>({...it,gid:g.id,groupName:g.name})));
+    footer.innerHTML='';
+    if (allArchived.length) {
+      const archHdr=document.createElement('div');
+      archHdr.style.cssText='padding:4px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:10px;color:#888;border-top:2px solid #e5e5e5';
+      archHdr.innerHTML=`<span>${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span><button onclick="event.stopPropagation();rpDeleteAllArchived()" style="font-size:9px;padding:1px 5px;border:1px solid #ddd;border-radius:3px;background:#fff;cursor:pointer;color:#aaa">Vider</button>`;
+      archHdr.onclick=()=>{ footer._show=!footer._show; renderRightPanel(); };
+      footer.appendChild(archHdr);
+      if (footer._show) allArchived.forEach(it=>{
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:4px;padding:3px 8px;border-bottom:1px solid #f8f8f8;opacity:0.6;font-size:9px';
+        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:line-through;color:#bbb">${it.text}</span><span style="color:#bbb;flex-shrink:0">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:9px;background:none;border:1px solid #ddd;border-radius:3px;cursor:pointer;color:#555;padding:1px 4px">↩</button><button onclick="rpDeleteItem(${it.gid},${it.id})" style="font-size:9px;background:none;border:none;cursor:pointer;color:#ddd;padding:0">✕</button>`;
+        footer.appendChild(row);
+      });
+    }
+  }
+
+  initRpResize();
+}
+
+function initRpResize() {
+  const handle = document.getElementById('rp-resize');
+  const panel = document.getElementById('right-panel');
+  if (!handle || !panel || handle._rpBound) return;
+  handle._rpBound = true;
+  let startX, startW;
+  handle.addEventListener('mousedown', e => {
+    startX = e.clientX; startW = panel.offsetWidth;
+    const onMove = ev => { panel.style.width = Math.max(160, Math.min(520, startW - (ev.clientX - startX))) + 'px'; };
+    const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+}
 
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 function scheduleSave() {
@@ -779,7 +1314,7 @@ async function saveBusDev() {
 // ─── XLS IMPORT ───────────────────────────────────────────────────────────────
 function openImport() {
   document.getElementById('import-modal').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeImport()">
+    <div class="ov" >
       <div class="modal">
         <h3>Importer pipeline_test.xlsx</h3>
         <p class="hint">Sélectionne ton fichier Excel. Les projets seront sauvegardés sur Google Drive et les tâches existantes conservées.</p>
@@ -868,6 +1403,12 @@ function clearPhases() {
 }
 function updateOwners() { /* owners now managed in action pad only */ }
 function toggleFilterTasks() { /* removed - tasks no longer in main table */ }
+function toggleFilterActions() {
+  filterActions = !filterActions;
+  const btn = document.getElementById('btn-filter-actions');
+  if (btn) { btn.style.background = filterActions?'#2563eb':'#fff'; btn.style.color = filterActions?'#fff':'#aaa'; btn.style.borderColor = filterActions?'#2563eb':'#ddd'; }
+  render();
+}
 function toggleFilterDiamond() {
   filterDiamond = !filterDiamond;
   const btn = document.getElementById('btn-filter-diamond');
@@ -878,17 +1419,46 @@ function toggleFilterDiamond() {
 function getSelectedPhases() {
   return [...document.querySelectorAll('#phase-checks input:checked')].map(cb => cb.value);
 }
+function getProjActions(p) {
+  // Unique key per pipeline line: mailid if exists, else internal pid key
+  const uniqueKey = p.mailid || `__pid_${p.id}`;
+  const g = apData.find(x => x.mailid === uniqueKey);
+  return g ? g.items : [];
+}
+
 function getVisible() {
   const q   = document.getElementById('search').value.toLowerCase();
   const fps = getSelectedPhases();
   const fs  = document.getElementById('fSol').value;
   const fa  = document.getElementById('fAgent').value;
+  const todayStr = fmtDate(new Date());
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekEndStr = fmtDate(weekEnd);
+
   let result = projects.filter(p => {
     if (filterDiamond && !p.diamond) return false;
+    if (filterActions && getProjActions(p).length === 0) return false;
     if (fps.length && !fps.includes(p.phase)) return false;
     if (fs && p.solution !== fs) return false;
     if (fa && p.agent !== fa) return false;
     if (q && ![p.company,p.country,p.solution,p.desc,p.mailid].join(' ').toLowerCase().includes(q)) return false;
+
+    // Global owner filter: only show projects that have at least one action with this owner
+    if (globalOwnerFilter) {
+      const items = getProjActions(p);
+      if (!items.some(it => it.owner === globalOwnerFilter)) return false;
+    }
+
+    // Global date filter: only show projects with actions in the date range
+    if (globalDateFilter === 'today') {
+      const items = getProjActions(p);
+      if (!items.some(it => it.date === todayStr)) return false;
+    }
+    if (globalDateFilter === 'week') {
+      const items = getProjActions(p);
+      if (!items.some(it => it.date >= todayStr && it.date <= weekEndStr)) return false;
+    }
+
     return true;
   });
   if (sortCol) {
@@ -969,17 +1539,56 @@ function sortBy(col) {
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
+let renderDebounceTimer = null;
+function debouncedRender() {
+  clearTimeout(renderDebounceTimer);
+  renderDebounceTimer = setTimeout(render, 120);
+}
+
+function toggleAllProjExpand() {
+  allProjExpanded = !allProjExpanded;
+  const btn = document.getElementById('btn-expand-all');
+  if (btn) btn.textContent = allProjExpanded ? '⚡ ▴' : '⚡ ▾';
+  render();
+}
+
+function toggleProjExpand(pid) {
+  projExpanded[pid] = !projExpanded[pid];
+  render();
+}
+
 function render() {
+  // Preserve search focus
+  const searchEl = document.getElementById('search');
+  const hadFocus = document.activeElement === searchEl;
+  const searchVal = searchEl ? searchEl.value : '';
+
   const vis = getVisible();
   updateStats(vis);
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
+  const todayStr = fmtDate(new Date());
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
+  const weekEndStr = fmtDate(weekEnd);
 
   vis.forEach(p => {
+    const actions = getProjActions(p);
+    // Apply global filters to actions for display
+    const filteredActions = actions.filter(it => {
+      if (globalOwnerFilter && it.owner !== globalOwnerFilter) return false;
+      if (globalDateFilter === 'today' && it.date !== todayStr) return false;
+      if (globalDateFilter === 'week' && !(it.date >= todayStr && it.date <= weekEndStr)) return false;
+      return true;
+    });
+    const hasActions = filteredActions.length > 0;
+    const isExpanded = projExpanded[p.id] !== undefined ? projExpanded[p.id] : allProjExpanded;
+
     const tr = document.createElement('tr'); tr.className = 'proj-row';
     tr.innerHTML = `
-      <td class="exp" onclick="event.stopPropagation()"></td>
-      <td style="text-align:center;cursor:pointer;width:18px" onclick="event.stopPropagation();toggleDiamond(${p.id})" title="Marquer comme important">
+      <td class="exp" onclick="event.stopPropagation();${hasActions?`toggleProjExpand(${p.id})`:''}";style="cursor:${hasActions?'pointer':'default'}">
+        ${hasActions ? (isExpanded?'▾':'▸') : ''}
+      </td>
+      <td style="text-align:center;cursor:pointer;width:18px" onclick="event.stopPropagation();toggleDiamond(${p.id})">
         <span style="font-size:13px;color:${p.diamond?'#f59e0b':'#ddd'}">${p.diamond?'◆':'◇'}</span>
       </td>
       <td class="pname">
@@ -995,16 +1604,286 @@ function render() {
       <td><span class="ph">${p.phase||'—'}</span></td>
       <td class="desc-cell" title="${p.desc}">${p.desc}</td>
       <td class="mid-cell" onclick="event.stopPropagation();copyMailId('${p.mailid}')" style="cursor:pointer;color:#2563eb;text-decoration:underline dotted">${p.mailid}</td>
-      <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#555;cursor:pointer;position:relative" onclick="event.stopPropagation();openStatusEditor(${p.id},this)">
+      <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#555;cursor:pointer" onclick="event.stopPropagation();openStatusEditor(${p.id},this)">
         <span title="${(p.status||'').replace(/"/g,'&quot;')}" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${p.status?'#333':'#ccc'}">${p.status||'—'}</span>
       </td>
       <td class="amt">${p.amount}</td>
       <td style="font-size:10px;color:#aaa">${p.target}</td>
-      <td><button class="del-btn" onclick="event.stopPropagation();deleteProject(${p.id})" title="Supprimer">✕</button></td>`;
+      <td style="white-space:nowrap;padding:2px 3px">
+        <button onclick="event.stopPropagation();addActionForProject(${p.id})" title="Ajouter une action" style="font-size:9px;padding:2px 5px;border:1px solid #bfdbfe;border-radius:3px;background:#eff6ff;cursor:pointer;color:#2563eb;font-weight:700">+⚡</button>
+        <button class="del-btn" onclick="event.stopPropagation();deleteProject(${p.id})" title="Supprimer">✕</button>
+      </td>`;
     tbody.appendChild(tr);
+
+    // Render action rows if expanded
+    if (isExpanded && hasActions) {
+      filteredActions.forEach(it => {
+        const isPast = it.date && it.date < todayStr && !it.done;
+        const ownerColor = it.owner===ME ? '#e65100' : it.owner ? '#2e7d32' : '#888';
+        const dateStr = it.date ? new Date(it.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
+        const atr = document.createElement('tr');
+        atr.className = 'task-row';
+        atr.style.background = '#f8faff';
+        // MUST be exactly 13 individual <td> — no colspan — to match proj-row
+        atr.innerHTML = `
+          <td style="padding:0"></td>
+          <td style="padding:0"></td>
+          <td style="padding:2px 4px 2px ${it.level===2?32:20}px;font-size:10px;color:${it.done?'#aaa':isPast?'#ef4444':'#333'};text-decoration:${it.done?'line-through':'none'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px">
+            <div style="display:flex;align-items:center;gap:3px;overflow:hidden">
+            <span style="margin-right:2px;cursor:pointer;color:${it.done?'#4ade80':isPast?'#ef4444':'#bbb'};flex-shrink:0" onclick="apToggleDoneByItem('${it.id}',${p.id})">${it.done?'✓':isPast?'⚠':'○'}</span>
+            ${it.level===2?'<span style="color:#bbb;flex-shrink:0">└</span>':''}
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.text}">${it.text}</span>
+            </div>
+          </td>
+          <td style="padding:0"></td>
+          <td style="padding:0"></td>
+          <td style="padding:0"></td>
+          <td style="padding:0"></td>
+          <td style="padding:0"></td>
+          <td style="padding:0"></td>
+          <td style="padding:2px 4px;font-size:9px;color:${ownerColor};font-weight:600">${it.owner||''}</td>
+          <td style="padding:2px 4px;font-size:9px;color:${isPast?'#ef4444':'#888'}">${dateStr}</td>
+          <td style="padding:2px 3px;white-space:nowrap">
+            <button onclick="event.stopPropagation();openEditAction('${it.id}',${p.id})" style="font-size:8px;padding:1px 4px;border:1px solid #ddd;border-radius:3px;background:#f9f9f9;cursor:pointer;color:#555">✎</button>
+            <button onclick="event.stopPropagation();deleteAction('${it.id}',${p.id})" style="font-size:8px;padding:1px 4px;border:1px solid #fca5a5;border-radius:3px;background:#fff;cursor:pointer;color:#ef4444">✕</button>
+          </td>
+          <td style="padding:0"></td>`;
+        tbody.appendChild(atr);
+      });
+    }
   });
   applyColVisibility();
   if (apFilterActive) renderActionPad();
+  if (currentTab === 'planning') renderPlanning();
+  // Restore focus if search was active
+  if (hadFocus && searchEl) {
+    searchEl.focus();
+    const len = searchEl.value.length;
+    searchEl.setSelectionRange(len, len);
+  }
+  // Don't re-render gantt if a modal is open (would steal focus)
+  if (!document.querySelector('#modal-area .ov')) {
+    setTimeout(renderGanttInline, 0);
+  }
+}
+
+// ─── GLOBAL FILTERS ───────────────────────────────────────────────────────────
+function applyGlobalFilters() {
+  globalOwnerFilter = document.getElementById('global-owner')?.value || '';
+  updateGlobalFilterStatus();
+  render();
+  renderActionPad();
+}
+
+function setGlobalDate(mode) {
+  globalDateFilter = globalDateFilter === mode ? '' : mode;
+  const todayBtn = document.getElementById('gf-today');
+  const weekBtn  = document.getElementById('gf-week');
+  if (todayBtn) { todayBtn.style.background = globalDateFilter==='today'?'#f59e0b':'#fff'; todayBtn.style.color = globalDateFilter==='today'?'#fff':'#92400e'; }
+  if (weekBtn)  { weekBtn.style.background  = globalDateFilter==='week' ?'#f59e0b':'#fff'; weekBtn.style.color  = globalDateFilter==='week' ?'#fff':'#92400e'; }
+  updateGlobalFilterStatus();
+  render();
+  renderActionPad();
+}
+
+function clearGlobalFilters() {
+  globalOwnerFilter = '';
+  globalDateFilter = '';
+  const sel = document.getElementById('global-owner');
+  if (sel) sel.value = '';
+  ['gf-today','gf-week'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.style.background='#fff'; btn.style.color='#92400e'; }
+  });
+  updateGlobalFilterStatus();
+  render();
+  renderActionPad();
+}
+
+function updateGlobalFilterStatus() {
+  const parts = [];
+  if (globalOwnerFilter) parts.push(`Owner: ${globalOwnerFilter}`);
+  if (globalDateFilter==='today') parts.push('Aujourd\'hui');
+  if (globalDateFilter==='week') parts.push('Cette semaine');
+  const el = document.getElementById('gf-status');
+  if (el) el.textContent = parts.length ? `Filtre actif: ${parts.join(' + ')}` : '';
+}
+
+function populateGlobalOwner() {
+  const sel = document.getElementById('global-owner');
+  if (!sel) return;
+  const cur = sel.value;
+  const owners = [...new Set([...OWNERS_DEF, ...apData.flatMap(g=>g.items.map(i=>i.owner).filter(Boolean))])].sort();
+  sel.innerHTML = '<option value="">Tous owners</option>' + owners.map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
+}
+
+function itemMatchesGlobalFilter(it) {
+  const todayStr = fmtDate(new Date());
+  if (globalOwnerFilter && it.owner !== globalOwnerFilter) return false;
+  if (globalDateFilter === 'today' && it.date !== todayStr) return false;
+  if (globalDateFilter === 'week') {
+    const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7);
+    if (!it.date || it.date < todayStr || it.date > fmtDate(weekEnd)) return false;
+  }
+  return true;
+}
+
+// ─── ADD ACTION FROM PIPELINE ROW ────────────────────────────────────────────
+function addActionForProject(pid) {
+  _guardModal();
+  const p = projects.find(x=>x.id===pid);
+  if (!p) return;
+  const uniqueKey = p.mailid || `__pid_${pid}`;
+  let g = apData.find(x => x.mailid === uniqueKey);
+  if (!g) {
+    g = { id: apNextId++, name: p.company, mailid: uniqueKey, dealLabel: [p.phase, p.solution].filter(Boolean).join(' · '), collapsed: false, items: [] };
+    apData.push(g);
+  }
+  const owners = [...new Set([ME, ...OWNERS_DEF, ...apData.flatMap(ag=>ag.items.map(i=>i.owner).filter(Boolean))])];
+  const todayStr = fmtDate(new Date());
+  const ownerOpts = owners.map(o=>`<option value="${o}">`).join('');
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div class="modal" style="width:440px;max-height:82vh;overflow-y:auto">
+        <h3>+⚡ Actions</h3>
+        <div style="font-size:10px;color:#888;margin-top:-6px;margin-bottom:10px">
+          <b style="color:#1a1a1a">${p.company}</b>
+          ${p.mailid?' · <span style="color:#2563eb">'+p.mailid+'</span>':''}
+          ${p.phase?' · '+p.phase:''}
+        </div>
+        <div id="action-rows"></div>
+        <button onclick="addActionRow()" style="font-size:11px;padding:4px 12px;border:1px solid #ddd;border-radius:5px;background:#f9f9f9;cursor:pointer;color:#555;margin-bottom:12px">+ Ajouter une action</button>
+        <div class="mbtns">
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveActionsForProject(${pid},${g.id})">Enregistrer</button>
+        </div>
+      </div>
+    </div>`;
+  window._apOwnerOpts = ownerOpts;
+  window._apTodayStr = todayStr;
+  addActionRow();
+}
+
+function addActionRow() {
+  const ownerOpts = window._apOwnerOpts || '';
+  const todayStr = window._apTodayStr || fmtDate(new Date());
+  const container = document.getElementById('action-rows');
+  if (!container) return;
+  const idx = container.children.length;
+  const row = document.createElement('div');
+  row.className = 'action-entry';
+  row.style.cssText = 'border:1px solid #e5e5e5;border-radius:8px;padding:8px 10px;margin-bottom:8px;background:#fafafa';
+  row.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <select class="ae-level" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#555">
+        <option value="1">⚡ Action</option>
+        <option value="2">└ Sous-action</option>
+      </select>
+      <button type="button" onclick="this.closest('.action-entry').remove()" style="margin-left:auto;font-size:10px;padding:1px 7px;border:1px solid #fca5a5;border-radius:4px;background:#fff;cursor:pointer;color:#ef4444">✕</button>
+    </div>
+    <input class="ae-text" placeholder="Description..." style="width:100%;font-size:12px;padding:5px 8px;border:1px solid #ddd;border-radius:5px;margin-bottom:6px;box-sizing:border-box">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <input class="ae-owner" list="ae-dl-${idx}" placeholder="${ME}" style="width:100%;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:5px">
+      <datalist id="ae-dl-${idx}">${ownerOpts}</datalist>
+      <input type="date" class="ae-date" value="${todayStr}" style="width:100%;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:5px">
+    </div>`;
+  container.appendChild(row);
+  row.querySelector('.ae-text').focus();
+}
+
+function saveActionsForProject(pid, gid) {
+  const g = apData.find(x=>x.id===gid);
+  if (!g) return;
+  let added = 0;
+  document.querySelectorAll('#action-rows .action-entry').forEach(row => {
+    const text = row.querySelector('.ae-text').value.trim();
+    if (!text) return;
+    g.items.push({ id:apNextId++, text, owner: row.querySelector('.ae-owner').value.trim()||ME, level: parseInt(row.querySelector('.ae-level').value), done:false, date: row.querySelector('.ae-date').value });
+    added++;
+  });
+  if (!added) return;
+  closeModal();
+  populateGlobalOwner();
+  scheduleApSave();
+  renderRightPanel();
+  render();
+}
+
+function apToggleDoneByItem(iid, pid) {
+  const id = parseInt(iid);
+  for (const g of apData) {
+    const it = g.items.find(x => x.id === id);
+    if (it) { it.done = !it.done; scheduleApSave(); render(); return; }
+  }
+}
+
+function openEditAction(iid, pid) {
+  _guardModal();
+  const id = parseInt(iid);
+  let foundIt = null, foundG = null;
+  for (const g of apData) {
+    const it = g.items.find(x => x.id === id);
+    if (it) { foundIt = it; foundG = g; break; }
+  }
+  if (!foundIt) return;
+  const owners = [...new Set([ME, ...OWNERS_DEF, ...apData.flatMap(g=>g.items.map(i=>i.owner).filter(Boolean))])];
+  document.getElementById('modal-area').innerHTML = `
+    <div class="ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div class="modal" style="width:360px">
+        <h3>✎ Modifier action</h3>
+        <div style="font-size:10px;color:#888;margin-top:-6px;margin-bottom:4px">${foundG.name}${foundG.dealLabel?' · '+foundG.dealLabel:''}</div>
+        <div><label>Action *</label><input id="ea-text" value="${foundIt.text.replace(/"/g,'&quot;')}" style="width:100%"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div><label>Owner</label>
+            <input id="ea-owner" list="ea-own-dl" value="${foundIt.owner||''}" placeholder="${ME}" style="width:100%">
+            <datalist id="ea-own-dl">${owners.map(o=>`<option value="${o}">`).join('')}</datalist>
+          </div>
+          <div><label>Date limite</label>
+            <input type="date" id="ea-date" value="${foundIt.date||''}" style="width:100%;font-size:12px;padding:5px;border:1px solid #ddd;border-radius:5px">
+          </div>
+        </div>
+        <div style="margin-top:8px"><label>Niveau</label>
+          <select id="ea-level" style="width:100%;font-size:12px;padding:5px;border:1px solid #ddd;border-radius:5px">
+            <option value="1"${foundIt.level===1?' selected':''}>Action principale</option>
+            <option value="2"${foundIt.level===2?' selected':''}>Sous-action</option>
+          </select>
+        </div>
+        <div class="mbtns" style="margin-top:12px">
+          <button onclick="deleteAction('${iid}',${pid})" style="color:#ef4444;border-color:#fca5a5;margin-right:auto">Supprimer</button>
+          <button onclick="closeModal()">Annuler</button>
+          <button class="pri" onclick="saveEditAction('${iid}')">Enregistrer</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('ea-text').focus();
+}
+
+function saveEditAction(iid) {
+  const id = parseInt(iid);
+  for (const g of apData) {
+    const it = g.items.find(x => x.id === id);
+    if (it) {
+      const text = document.getElementById('ea-text').value.trim();
+      if (!text) { document.getElementById('ea-text').style.borderColor='#e00'; return; }
+      it.text  = text;
+      it.owner = document.getElementById('ea-owner').value.trim();
+      it.date  = document.getElementById('ea-date').value;
+      it.level = parseInt(document.getElementById('ea-level').value);
+      closeModal();
+      scheduleApSave();
+      render();
+      return;
+    }
+  }
+}
+
+function deleteAction(iid, pid) {
+  const id = parseInt(iid);
+  if (!confirm('Supprimer cette action ?')) return;
+  for (const g of apData) {
+    const idx = g.items.findIndex(x => x.id === id);
+    if (idx !== -1) { g.items.splice(idx, 1); scheduleApSave(); render(); return; }
+  }
 }
 
 function setProjStatus(pid, val) {
@@ -1037,8 +1916,6 @@ function openStatusEditor(pid, cell) {
   document.body.appendChild(pop);
   statusPopup = pop;
   document.getElementById('status-ta').focus();
-  // Close on outside click
-  setTimeout(() => document.addEventListener('click', closeStatusEditor, {once:true}), 10);
 }
 function saveStatusEditor(pid) {
   const ta = document.getElementById('status-ta');
@@ -1097,6 +1974,113 @@ function exportXLS() {
 
   XLSX.writeFile(wb, `CLATA_Pipeline_${new Date().toISOString().slice(0,10)}.xlsx`);
   showSync('ok','Export XLS ✓');
+}
+
+function renderGanttInline() {
+  const today = new Date();
+  const todayStr = fmtDate(today);
+  const COL_W = 28;
+  const DAYS = 14; // 2 weeks only
+
+  const days = [];
+  for (let i=0; i<DAYS; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    days.push(fmtDate(d));
+  }
+
+  // Single header row — just day numbers, no week row
+  const headerRow = document.getElementById('gantt-header-row');
+  if (headerRow) {
+    const ths = [...headerRow.querySelectorAll('th')];
+    ths.slice(14).forEach(th => th.remove()); // remove old gantt ths
+    days.forEach(ds => {
+      const d = new Date(ds);
+      const isToday = ds===todayStr, isWeekend = d.getDay()===0||d.getDay()===6;
+      const th = document.createElement('th');
+      th.style.cssText = `width:${COL_W}px;text-align:center;font-size:8px;color:${isToday?'#6366f1':'#888'};font-weight:${isToday?700:400};background:${isToday?'#e0e7ff':isWeekend?'#f0f0f0':'#fafafa'};border-left:${d.getDay()===1?'1px solid #bbb':'none'};padding:2px 0;border-bottom:2px solid #e5e5e5`;
+      th.innerHTML = `<div style="font-size:7px;color:#bbb">${d.toLocaleDateString('fr-FR',{weekday:'narrow'})}</div><div>${d.getDate()}</div>`;
+      headerRow.appendChild(th);
+    });
+  }
+
+  // Build cells for a row given a specific set of items (or null for proj summary)
+  function makeGanttCells(tr, items, isSummary) {
+    tr.querySelectorAll('.gantt-sep,.gantt-cell').forEach(el => el.remove());
+    const sep = document.createElement('td');
+    sep.className = 'gantt-sep';
+    sep.style.cssText = 'width:2px;background:#e5e5e5;padding:0';
+    tr.appendChild(sep);
+
+    days.forEach(ds => {
+      const d = new Date(ds);
+      const td = document.createElement('td');
+      td.className = 'gantt-cell';
+      td.style.cssText = `width:${COL_W}px;padding:0;height:${isSummary?22:18}px;border-left:${d.getDay()===1?'1px solid #ddd':'none'}`;
+      const isToday = ds===todayStr, isWeekend = d.getDay()===0||d.getDay()===6;
+
+      if (isSummary) {
+        // Project row: show faint background if any action falls this day
+        const hits = items.filter(it => it.date===ds && itemMatchesGlobalFilter(it));
+        if (hits.length) {
+          td.style.background = '#e0e7ff'; // light indicator only
+        } else {
+          td.style.background = isToday?'#e0e7ff':isWeekend?'#f9f9f9':'';
+        }
+      } else {
+        // Action row: show the actual colored cell on the exact date
+        if (items.date === ds) {
+          const it = items;
+          const ip = it.date < todayStr && !it.done;
+          td.style.background = it.done?'#d1fae5':ip?'#fee2e2':'#bfdbfe';
+          const oc = it.owner===ME?'border-left:3px solid #e65100':it.owner?'border-left:3px solid #2e7d32':'';
+          const ownerColor = it.done?'#065f46':ip?'#991b1b':it.owner===ME?'#e65100':it.owner?'#2e7d32':'#1e40af';
+          const ownerShort = it.owner ? it.owner.slice(0,4) : '';
+          td.innerHTML = `<div style="width:100%;height:100%;${oc};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0" title="${it.text}${it.owner?' ['+it.owner+']':''}">
+            <span style="font-size:8px;font-weight:700;color:${ownerColor};line-height:1">${it.done?'✓':ip?'!':'●'}</span>
+            ${ownerShort?`<span style="font-size:6px;font-weight:600;color:${ownerColor};line-height:1;overflow:hidden;max-width:${COL_W-4}px;text-overflow:ellipsis;white-space:nowrap">${ownerShort}</span>`:''}
+          </div>`;
+        } else {
+          td.style.background = isToday?'#e0e7ff':isWeekend?'#f9f9f9':'';
+        }
+      }
+      tr.appendChild(td);
+    });
+  }
+
+  // Process all rows in tbody
+  const vis = getVisible();
+  const todayWeekEnd = new Date(); todayWeekEnd.setDate(todayWeekEnd.getDate()+7);
+  const weekEndStr = fmtDate(todayWeekEnd);
+
+  const allTr = [...document.querySelectorAll('#tbody tr')];
+  let projIdx = -1;
+  let currentP = null;
+  let actionIdx = 0;
+  let currentActions = [];
+
+  allTr.forEach(tr => {
+    if (tr.classList.contains('proj-row')) {
+      projIdx++;
+      currentP = vis[projIdx];
+      if (!currentP) return;
+      currentActions = getProjActions(currentP).filter(it => {
+        if (!it.date) return false;
+        if (globalOwnerFilter && it.owner !== globalOwnerFilter) return false;
+        if (globalDateFilter === 'today' && it.date !== todayStr) return false;
+        if (globalDateFilter === 'week' && !(it.date >= todayStr && it.date <= weekEndStr)) return false;
+        return true;
+      });
+      actionIdx = 0;
+      // Summary row — show light indicator only
+      makeGanttCells(tr, currentActions, true);
+    } else if (tr.classList.contains('task-row') && currentP) {
+      // Action sub-row — show specific cell
+      const it = currentActions[actionIdx];
+      if (it) makeGanttCells(tr, it, false);
+      else tr.querySelectorAll('.gantt-sep,.gantt-cell').forEach(el => el.remove());
+      actionIdx++;
+    }
+  });
 }
 
 function toggleDiamond(pid) {
@@ -1168,7 +2152,7 @@ function comboField(id, label, values, placeholder, colSpan) {
 }
 
 // ─── ADD TASK MODAL ───────────────────────────────────────────────────────────
-function openModal(pid) {
+function openModal(pid) { _guardModal();
   const p = projects.find(x=>x.id===pid);
   const owners = [...new Set([...OWNERS_DEF,...projects.flatMap(px=>px.tasks.map(t=>t.owner)).filter(Boolean)])].sort();
   const companies = [...new Set(projects.map(px=>px.company).filter(Boolean))].sort();
@@ -1176,7 +2160,7 @@ function openModal(pid) {
   const agents    = [...new Set(projects.map(px=>px.agent).filter(Boolean))].sort();
 
   document.getElementById('modal-area').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeModal()">
+    <div class="ov" >
       <div class="modal" style="width:340px">
         <h3>+ Tâche — ${p.company}</h3>
         <div><label>Description *</label><input id="mt" placeholder="Ex: Envoyer offre Ceragon"></div>
@@ -1202,7 +2186,7 @@ function openModal(pid) {
   document.getElementById('mt').focus();
 }
 
-function openNewProject() {
+function openNewProject() { _guardModal();
   const phases     = [...new Set(projects.map(p=>p.phase).filter(Boolean))].sort();
   const solutions  = [...new Set(projects.map(p=>p.solution).filter(Boolean))].sort();
   const agents     = [...new Set(projects.map(p=>p.agent).filter(Boolean))].sort();
@@ -1210,7 +2194,7 @@ function openNewProject() {
   const companies  = [...new Set(projects.map(p=>p.company).filter(Boolean))].sort();
 
   document.getElementById('modal-area').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeModal()">
+    <div class="ov" >
       <div class="modal" style="width:340px">
         <h3>+ Nouvelle ligne</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1255,9 +2239,19 @@ function saveNewProject() {
   saveProjects(projects).then(()=>showSync('ok','Sauvegardé ✓')).catch(()=>showSync('err','Erreur save'));
 }
 
-function closeModal() { document.getElementById('modal-area').innerHTML = ''; }
+function closeModal() {
+  document.getElementById('modal-area').innerHTML = '';
+  // Re-render after modal closes so gantt updates
+  setTimeout(() => { if (!document.querySelector('#modal-area .ov')) render(); }, 100);
+}
 
-function openEditProject(pid) {
+// Call this at start of every function that opens a modal to cancel pending renders
+function _guardModal() {
+  clearTimeout(renderDebounceTimer);
+  renderDebounceTimer = null;
+}
+
+function openEditProject(pid) { _guardModal();
   const p = projects.find(x=>x.id===pid);
   if (!p) return;
   const phases    = [...new Set(projects.map(x=>x.phase).filter(Boolean))].sort();
@@ -1268,7 +2262,7 @@ function openEditProject(pid) {
   const targets   = [...new Set(projects.map(x=>x.target).filter(Boolean))].sort();
 
   document.getElementById('modal-area').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeModal()">
+    <div class="ov" >
       <div class="modal" style="width:360px;max-height:90vh;overflow-y:auto">
         <h3>✎ Modifier — ${p.company}</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1361,20 +2355,22 @@ document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeModal(); 
 // ─── TAB SWITCHING ────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  document.getElementById('view-pipeline').style.display = tab === 'pipeline' ? 'flex' : 'none';
-  document.getElementById('view-busdev').style.display   = tab === 'busdev'   ? 'flex' : 'none';
-  document.getElementById('view-clients').style.display  = tab === 'clients'  ? 'flex' : 'none';
-  document.getElementById('view-actions').style.display  = tab === 'actions'  ? 'flex' : 'none';
-  ['pipeline','busdev','clients','actions'].forEach(t => {
+  document.getElementById('view-pipeline').style.display  = tab === 'pipeline' ? 'flex' : 'none';
+  document.getElementById('view-busdev').style.display    = tab === 'busdev'   ? 'flex' : 'none';
+  document.getElementById('view-clients').style.display   = tab === 'clients'  ? 'flex' : 'none';
+  document.getElementById('view-actions').style.display   = tab === 'actions'  ? 'flex' : 'none';
+  document.getElementById('view-planning').style.display  = tab === 'planning' ? 'flex' : 'none';
+  ['pipeline','busdev','clients','actions','planning'].forEach(t => {
     const btn = document.getElementById('tab-'+t);
     if (!btn) return;
     btn.style.cssText = t===tab
       ? 'font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid #1a1a1a;background:#fff;color:#1a1a1a;cursor:pointer;font-weight:600'
       : 'font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400';
   });
-  if (tab === 'busdev') renderBD();
-  if (tab === 'clients') renderClients();
-  if (tab === 'actions') renderActionPad();
+  if (tab === 'busdev')   renderBD();
+  if (tab === 'clients')  renderClients();
+  if (tab === 'actions')  renderActionPad();
+  if (tab === 'planning') renderPlanning();
 }
 
 // ─── BUS DEV RENDER ───────────────────────────────────────────────────────────
@@ -1468,7 +2464,7 @@ function delBD(id) {
 function openBDModal(editId) {
   const b = editId ? busdevItems.find(x=>x.id===editId) : null;
   document.getElementById('modal-area').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeModal()">
+    <div class="ov" >
       <div class="modal" style="width:360px">
         <h3>${b ? 'Modifier idée' : '+ Nouvelle idée Bus Dev'}</h3>
         <div><label>Titre *</label><input id="bd-title" value="${b?b.title:''}" placeholder="Ex: Développer offre CPE 5G Afrique"></div>
@@ -1600,7 +2596,7 @@ function showClientDetail(cid) {
 function openClientModal(editId) {
   const c = editId ? clientsData.find(x=>x.id===editId) : null;
   document.getElementById('modal-area').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeModal()">
+    <div class="ov" >
       <div class="modal" style="width:380px">
         <h3>${c?'Modifier client':'+ Nouveau client'}</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1648,7 +2644,7 @@ function saveClientModal(editId) {
 
 function addContactModal(cid) {
   document.getElementById('modal-area').innerHTML = `
-    <div class="ov" onclick="if(event.target===this)closeModal()">
+    <div class="ov" >
       <div class="modal" style="width:320px">
         <h3>+ Contact</h3>
         <div><label>Nom</label><input id="ct-name" placeholder="ex: Henri Martin"></div>
@@ -1708,14 +2704,18 @@ function renderActionPad() {
   const targets  = [body, tabBody].filter(Boolean);
   if (!targets.length) return;
 
-  // Filter: only show groups matching visible pipeline companies
-  let visibleNames = null;
-  if (apFilterActive) {
-    const vis = getVisible();
-    visibleNames = new Set(vis.map(p => p.company.toLowerCase()));
+  const todayStr = fmtDate(new Date());
+  const ownerFilter = globalOwnerFilter || (document.getElementById('ap-owner-filter')?.value)||'';
+
+  // Populate owner dropdown
+  const allOwners = [...new Set([...OWNERS_DEF, ...apData.flatMap(g=>g.items.map(i=>i.owner).filter(Boolean))])].sort();
+  const ownerSel = document.getElementById('ap-owner-filter');
+  if (ownerSel) {
+    const cur = ownerSel.value;
+    ownerSel.innerHTML = '<option value="">Tous owners</option>' + allOwners.map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
   }
 
-  // Sync filter button state on both panels
+  // Sync filter buttons
   ['ap-filter-btn','ap-filter-btn2'].forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -1723,6 +2723,13 @@ function renderActionPad() {
     btn.style.color = apFilterActive ? '#fff' : '#aaa';
     btn.style.borderColor = apFilterActive ? '#1a1a1a' : '#ddd';
   });
+
+  // Filter groups by visible pipeline companies
+  let visibleNames = null;
+  if (apFilterActive) {
+    const vis = getVisible();
+    visibleNames = new Set(vis.map(p => p.company.toLowerCase()));
+  }
 
   targets.forEach(body => {
     body.innerHTML = '';
@@ -1734,20 +2741,31 @@ function renderActionPad() {
       const gDiv = document.createElement('div');
       gDiv.className = 'ap-group';
 
-    // Group header
+    // Group header - shows Client name + deal label (mailid / phase)
     const gh = document.createElement('div');
     gh.className = 'ap-group-header';
+    const dealLabel = g.dealLabel || (g.mailid ? g.mailid : '');
     gh.innerHTML = `
-      <span style="font-size:10px;color:#bbb;margin-right:2px;cursor:pointer" onclick="apToggleGroup(${g.id})">${g.collapsed?'▸':'▾'}</span>
-      <input class="ap-group-name" value="${g.name.replace(/"/g,'&quot;')}" placeholder="Client / Groupe..." 
-        onblur="apRenameGroup(${g.id},this.value)" 
-        onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}">
+      <span style="font-size:10px;color:#bbb;margin-right:2px;cursor:pointer;flex-shrink:0" onclick="apToggleGroup(${g.id})">${g.collapsed?'▸':'▾'}</span>
+      <div style="flex:1;min-width:0">
+        <input class="ap-group-name" value="${g.name.replace(/"/g,'&quot;')}" placeholder="Client..." 
+          onblur="apRenameGroup(${g.id},this.value)" 
+          onkeydown="if(event.key==='Enter'){this.blur();event.preventDefault()}"
+          style="font-size:11px;font-weight:700">
+        ${dealLabel?`<div style="font-size:9px;color:#6366f1;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${dealLabel}</div>`:''}
+      </div>
       <button class="ap-del" onclick="apDelGroup(${g.id})">✕</button>`;
     gDiv.appendChild(gh);
 
     if (!g.collapsed) {
       const itemsDiv = document.createElement('div');
       g.items.forEach(it => {
+        // Apply owner filter (local or global)
+        if (ownerFilter && it.owner !== ownerFilter) return;
+        // Apply today filter (local)
+        if (apTodayFilter && it.date !== todayStr) return;
+        // Apply global date filter
+        if (!itemMatchesGlobalFilter(it)) return;
         const ownerClass = !it.owner ? 'none' : it.owner===ME ? 'me' : 'other';
         const owners = [...new Set([ME, ...OWNERS_DEF, ...apData.flatMap(ag=>ag.items.map(i=>i.owner).filter(Boolean))])];
         const itDiv = document.createElement('div');
@@ -1886,16 +2904,18 @@ function apSetDate(gid, iid, val) {
   scheduleApSave();
 }
 
-// ─── ACTION PAD FILTER ────────────────────────────────────────────────────────
 let apFilterActive = false;
+let apTodayFilter = false;
+
 function toggleApFilter() {
   apFilterActive = !apFilterActive;
-  const btn = document.getElementById('ap-filter-btn');
-  if (btn) {
-    btn.style.background = apFilterActive ? '#1a1a1a' : '#fff';
-    btn.style.color = apFilterActive ? '#fff' : '#aaa';
-    btn.style.borderColor = apFilterActive ? '#1a1a1a' : '#ddd';
-  }
+  renderActionPad();
+}
+
+function toggleApToday() {
+  apTodayFilter = !apTodayFilter;
+  const btn = document.getElementById('ap-today-btn');
+  if (btn) { btn.style.background = apTodayFilter?'#1a1a1a':'#fff'; btn.style.color = apTodayFilter?'#fff':'#aaa'; btn.style.borderColor = apTodayFilter?'#1a1a1a':'#ddd'; }
   renderActionPad();
 }
 
@@ -1928,6 +2948,315 @@ function initApResize() {
 
 function apCollapseAll() { apData.forEach(g=>g.collapsed=true); renderActionPad(); scheduleApSave(); }
 function apExpandAll()   { apData.forEach(g=>g.collapsed=false); renderActionPad(); scheduleApSave(); }
+
+// ─── PLANNING ─────────────────────────────────────────────────────────────────
+let planOffset = 0; // weeks or months offset from today
+let planMode = 'week'; // 'week' | 'month' | 'gantt'
+
+function setPlanMode(mode) {
+  planMode = mode;
+  planOffset = 0;
+  ['week','month','gantt'].forEach(m => {
+    const btn = document.getElementById('plan-mode-'+m);
+    if (!btn) return;
+    btn.style.background = m===mode ? '#1a1a1a' : '#fff';
+    btn.style.color = m===mode ? '#fff' : '#555';
+    btn.style.borderColor = m===mode ? '#1a1a1a' : '#ddd';
+  });
+  renderPlanning();
+}
+
+function planningNav(dir) {
+  if (dir === 0) planOffset = 0;
+  else planOffset += dir;
+  renderPlanning();
+}
+
+function renderPlanning() {
+  const body = document.getElementById('planning-body');
+  const label = document.getElementById('planning-label');
+  if (!body) return;
+  renderPlanGantt(body, label);
+}
+
+function getWeekDays(offset) {
+  const now = new Date();
+  const day = now.getDay() || 7;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - day + 1 + offset * 7);
+  return Array.from({length:7}, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
+function fmtDate(d) { return d.toISOString().slice(0,10); }
+function fmtDay(d) {
+  return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+}
+
+function renderPlanWeek(body, label, dated) {
+  const days = getWeekDays(planOffset);
+  label.textContent = `Semaine du ${days[0].toLocaleDateString('fr-FR',{day:'numeric',month:'long'})} au ${days[6].toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}`;
+
+  const today = fmtDate(new Date());
+  const COL_W = 130;
+  const ROW_H = 32;
+
+  // Group all visible pipeline projects too (for gantt-style rows)
+  const vis = getVisible();
+
+  let html = `<div style="display:flex;min-width:${7*COL_W+180}px">`;
+  // Left labels col
+  html += `<div style="width:180px;flex-shrink:0;border-right:2px solid #e5e5e5;background:#fff;position:sticky;left:0;z-index:3">
+    <div style="height:36px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;padding:0 10px;font-size:10px;font-weight:700;color:#888;background:#fff">CLIENT / ACTION</div>`;
+
+  // Day header
+  html += `</div><div style="display:flex;flex:1">`;
+  days.forEach(d => {
+    const isToday = fmtDate(d) === today;
+    html += `<div style="width:${COL_W}px;flex-shrink:0;height:36px;border-bottom:1px solid #e5e5e5;border-right:1px solid #f0f0f0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:${isToday?700:400};color:${isToday?'#1a1a1a':'#888'};background:${isToday?'#f0f4ff':'#fff'}">${fmtDay(d)}</div>`;
+  });
+  html += `</div></div>`;
+
+  // Rows: group items by group name, then by day
+  const groups = {};
+  dated.forEach(it => {
+    if (!groups[it.group]) groups[it.group] = [];
+    groups[it.group].push(it);
+  });
+
+  // Also add pipeline projects that have items this week
+  const weekDates = new Set(days.map(d => fmtDate(d)));
+
+  Object.entries(groups).forEach(([gname, items]) => {
+    const weekItems = items.filter(it => weekDates.has(it.date));
+    if (!weekItems.length) return;
+
+    // Group header row
+    html += `<div style="display:flex;min-width:${7*COL_W+180}px;border-bottom:1px solid #e8e8e8">
+      <div style="width:180px;flex-shrink:0;border-right:2px solid #e5e5e5;background:#fafafa;position:sticky;left:0;z-index:2;padding:5px 10px;font-size:11px;font-weight:700;color:#1a1a1a;display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${gname}</div>
+      <div style="display:flex;flex:1">`;
+    days.forEach(d => {
+      const ds = fmtDate(d);
+      const isToday = ds === today;
+      html += `<div style="width:${COL_W}px;flex-shrink:0;min-height:${ROW_H}px;border-right:1px solid #f0f0f0;background:${isToday?'#f8f9ff':'#fafafa'}"></div>`;
+    });
+    html += `</div></div>`;
+
+    // Item rows
+    items.filter(it => weekDates.has(it.date)).forEach(it => {
+      html += `<div style="display:flex;min-width:${7*COL_W+180}px;border-bottom:1px solid #f0f0f0">
+        <div style="width:180px;flex-shrink:0;border-right:2px solid #e5e5e5;background:#fff;position:sticky;left:0;z-index:2;padding:3px 10px 3px ${it.level===2?24:14}px;font-size:10px;color:#555;display:flex;align-items:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.done?'✓ ':'○ '}${it.text}</div>
+        <div style="display:flex;flex:1">`;
+      days.forEach(d => {
+        const ds = fmtDate(d);
+        const isToday = ds === today;
+        const isDate = it.date === ds;
+        const isPast = it.date < today && !it.done;
+        html += `<div style="width:${COL_W}px;flex-shrink:0;min-height:${ROW_H}px;border-right:1px solid #f0f0f0;background:${isToday?'#f0f4ff':'#fff'};display:flex;align-items:center;justify-content:center">`;
+        if (isDate) {
+          const ownerColor = !it.owner ? '#888' : it.owner===ME ? '#e65100' : '#2e7d32';
+          html += `<div style="background:${isPast?'#fee2e2':it.done?'#d1fae5':'#dbeafe'};color:${isPast?'#991b1b':it.done?'#065f46':'#1e40af'};border-radius:4px;padding:2px 6px;font-size:9px;font-weight:600;max-width:${COL_W-10}px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${it.text}${it.owner?' — '+it.owner:''}">
+            ${it.done?'✓':isPast?'⚠':''} ${it.text.slice(0,18)}${it.text.length>18?'…':''}
+            ${it.owner?`<span style="color:${ownerColor};margin-left:3px">${it.owner}</span>`:''}
+          </div>`;
+        }
+        html += `</div>`;
+      });
+      html += `</div></div>`;
+    });
+  });
+
+  // Upcoming items (beyond this week)
+  const futureItems = dated.filter(it => !weekDates.has(it.date) && it.date > fmtDate(days[6]) && !it.done);
+  if (futureItems.length) {
+    html += `<div style="padding:10px 12px;font-size:10px;color:#888;font-weight:600;border-top:2px solid #e5e5e5;margin-top:4px">À VENIR</div>`;
+    futureItems.sort((a,b)=>a.date.localeCompare(b.date)).forEach(it => {
+      const d = new Date(it.date);
+      const ownerColor = !it.owner ? '#888' : it.owner===ME ? '#e65100' : '#2e7d32';
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:4px 12px;border-bottom:1px solid #f5f5f5;font-size:10px">
+        <span style="color:#888;min-width:70px">${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</span>
+        <span style="font-weight:600;color:#555;min-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.group}</span>
+        <span style="color:#333;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.text}</span>
+        ${it.owner?`<span style="color:${ownerColor};font-weight:600">${it.owner}</span>`:''}
+      </div>`;
+    });
+  }
+
+  if (!Object.keys(groups).length && !futureItems.length) {
+    html += `<div style="text-align:center;color:#bbb;font-size:13px;padding:60px">Aucune action avec une date — ajoute des dates dans le panneau Actions</div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+function renderPlanMonth(body, label, dated) {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() + planOffset, 1);
+  const end = new Date(start.getFullYear(), start.getMonth()+1, 0);
+  label.textContent = start.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+
+  const today = fmtDate(new Date());
+  const days = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) days.push(fmtDate(new Date(d)));
+
+  // Build day → items map
+  const dayMap = {};
+  dated.forEach(it => { if (!dayMap[it.date]) dayMap[it.date] = []; dayMap[it.date].push(it); });
+
+  // Calendar grid
+  const firstDay = (start.getDay()||7) - 1; // 0=Mon
+  const DAYS_FR = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  let html = `<div style="padding:12px"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">`;
+  DAYS_FR.forEach(d => html += `<div style="text-align:center;font-size:10px;font-weight:700;color:#888;padding:4px">${d}</div>`);
+
+  for (let i=0; i<firstDay; i++) html += `<div></div>`;
+  days.forEach(ds => {
+    const d = new Date(ds);
+    const isToday = ds === today;
+    const items = dayMap[ds] || [];
+    html += `<div style="min-height:70px;border:1px solid ${isToday?'#6366f1':'#e5e5e5'};border-radius:6px;padding:4px;background:${isToday?'#f0f4ff':'#fff'}">
+      <div style="font-size:10px;font-weight:${isToday?700:400};color:${isToday?'#6366f1':'#888'};margin-bottom:2px">${d.getDate()}</div>`;
+    items.slice(0,3).forEach(it => {
+      const isPast = ds < today && !it.done;
+      const ownerColor = !it.owner ? '#1e40af' : it.owner===ME ? '#e65100' : '#2e7d32';
+      html += `<div style="background:${isPast?'#fee2e2':it.done?'#d1fae5':'#dbeafe'};border-radius:3px;padding:1px 4px;font-size:8px;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${isPast?'#991b1b':ownerColor}" title="${it.group}: ${it.text}">${it.group.slice(0,8)} · ${it.text.slice(0,10)}</div>`;
+    });
+    if (items.length > 3) html += `<div style="font-size:8px;color:#aaa">+${items.length-3}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  body.innerHTML = html;
+}
+
+function renderPlanGantt(body, label) {
+  const today = new Date();
+  const todayStr = fmtDate(today);
+
+  const start = new Date(today);
+  start.setDate(start.getDate() + planOffset * 7);
+  const end = new Date(start); end.setDate(start.getDate() + 56);
+  label.textContent = start.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) + ' → ' + end.toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'});
+
+  const days = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) days.push(fmtDate(new Date(d)));
+  const weeks = [];
+  for (let i=0; i<days.length; i+=7) weeks.push(days.slice(i,i+7));
+
+  const COL_W = 24, rowH = 22, subH = 18;
+
+  // Use filtered pipeline rows (respects all pipeline filters)
+  const vis = getVisible();
+
+  // Week header
+  let weekHdr = '<div style="display:flex">';
+  weeks.forEach(wk => {
+    const d = new Date(wk[0]);
+    weekHdr += `<div style="width:${wk.length*COL_W}px;flex-shrink:0;padding:2px 4px;font-size:9px;color:#888;border-left:1px solid #ddd;border-bottom:1px solid #e5e5e5;background:#fafafa">${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</div>`;
+  });
+  weekHdr += '</div>';
+
+  // Day header
+  let dayHdr = '<div style="display:flex">';
+  days.forEach(ds => {
+    const d = new Date(ds);
+    const isToday = ds === todayStr;
+    const isWeekend = d.getDay()===0 || d.getDay()===6;
+    dayHdr += `<div style="width:${COL_W}px;flex-shrink:0;text-align:center;font-size:7px;color:${isToday?'#6366f1':'#ccc'};font-weight:${isToday?700:400};border-left:${d.getDay()===1?'1px solid #ddd':'none'};border-bottom:2px solid #e5e5e5;background:${isToday?'#e0e7ff':isWeekend?'#f5f5f5':'#fafafa'};padding:1px 0">${d.getDate()}</div>`;
+  });
+  dayHdr += '</div>';
+
+  let leftHTML = `<div style="height:18px;padding:2px 8px;font-size:10px;color:#888;font-weight:700;border-bottom:1px solid #e5e5e5;background:#fafafa"></div><div style="height:20px;padding:2px 8px;font-size:10px;color:#888;font-weight:700;border-bottom:2px solid #e5e5e5;background:#fafafa">Projet / Action</div>`;
+  let rightHTML = weekHdr + dayHdr;
+
+  // Show ALL visible pipeline projects
+  vis.forEach(p => {
+    const k = p.company.toLowerCase();
+    // Find matching action groups - strict mailid first
+    const matchedItems = getProjActions(p).filter(it => it.date).sort((a,b)=>a.date.localeCompare(b.date));
+
+    // Project row
+    const hasActions = matchedItems.length > 0;
+    leftHTML += `<div style="height:${rowH}px;padding:2px 8px;font-size:10px;font-weight:700;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid ${hasActions?'#e0e0e0':'#f5f5f5'};background:${hasActions?'#f5f5f5':'#fff'};display:flex;align-items:center">
+      <span style="color:${p.diamond?'#f59e0b':'#ddd'};margin-right:3px">${p.diamond?'◆':'◇'}</span>${p.company}<span style="font-size:8px;color:#aaa;margin-left:4px">${p.phase||''}</span>
+    </div>`;
+    let rr = `<div style="display:flex;height:${rowH}px;background:${hasActions?'#f5f5f5':'#fff'}">`;
+    days.forEach(ds => {
+      const d = new Date(ds);
+      const isToday = ds===todayStr, isWeekend = d.getDay()===0||d.getDay()===6;
+      const hits = matchedItems.filter(it => it.date===ds);
+      let bg = isToday?'#e0e7ff':hits.length?'#dbeafe':isWeekend?'#f9f9f9':hasActions?'#f5f5f5':'#fff';
+      rr += `<div style="width:${COL_W}px;flex-shrink:0;background:${bg};border-left:${d.getDay()===1?'1px solid #ddd':'none'};border-bottom:1px solid ${hasActions?'#e0e0e0':'#f5f5f5'}"></div>`;
+    });
+    rightHTML += rr + '</div>';
+
+    // Action item rows
+    matchedItems.forEach(it => {
+      const isPast = it.date < todayStr && !it.done;
+      const oc = it.owner===ME?'#e65100':it.owner?'#2e7d32':'#888';
+      leftHTML += `<div style="height:${subH}px;padding:1px 8px 1px 18px;font-size:9px;color:${it.done?'#aaa':'#444'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid #f5f5f5;background:#fff;display:flex;align-items:center;gap:4px;text-decoration:${it.done?'line-through':'none'}">
+        <span style="color:${it.done?'#4ade80':isPast?'#ef4444':'#bbb'};flex-shrink:0">${it.done?'✓':isPast?'⚠':'○'}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${it.text}</span>
+        ${it.owner?`<span style="color:${oc};font-size:8px;flex-shrink:0;font-weight:600">${it.owner}</span>`:''}
+      </div>`;
+      let rr = `<div style="display:flex;height:${subH}px">`;
+      days.forEach(ds => {
+        const d = new Date(ds);
+        const isDate = it.date===ds, isToday = ds===todayStr, isWeekend = d.getDay()===0||d.getDay()===6;
+        const ip = it.date<todayStr && !it.done;
+        let bg = isToday?'#e0e7ff':isWeekend?'#f5f5f5':'#fff';
+        let inner = '';
+        if (isDate) {
+          bg = it.done?'#d1fae5':ip?'#fee2e2':'#bfdbfe';
+          const dot = it.done?'✓':ip?'!':'●';
+          const c = it.done?'#065f46':ip?'#991b1b':'#1e40af';
+          inner = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:8px;color:${c};font-weight:700">${dot}</div>`;
+        }
+        rr += `<div style="width:${COL_W}px;flex-shrink:0;background:${bg};border-left:${d.getDay()===1?'1px solid #ddd':'none'};border-bottom:1px solid #f5f5f5">${inner}</div>`;
+      });
+      rightHTML += rr + '</div>';
+    });
+  });
+
+  // Saved width or default 200px
+  const savedW = parseInt(localStorage.getItem('gantt-left-w')||'200');
+
+  body.innerHTML = `
+    <div id="gantt-left" style="width:${savedW}px;min-width:80px;flex-shrink:0;overflow-y:hidden;overflow-x:hidden;background:#fff;border-right:2px solid #e5e5e5">${leftHTML}</div>
+    <div id="gantt-divider" style="width:4px;flex-shrink:0;background:#e5e5e5;cursor:col-resize;display:flex;align-items:center;justify-content:center;border-left:1px solid #ccc">
+    </div>
+    <div id="gantt-right" style="flex:1;overflow:auto;min-width:0">${rightHTML}</div>`;
+
+  // Sync vertical scroll
+  const lp = document.getElementById('gantt-left');
+  const rp = document.getElementById('gantt-right');
+  rp.addEventListener('scroll', () => { lp.scrollTop = rp.scrollTop; });
+
+  // Drag to resize
+  const divider = document.getElementById('gantt-divider');
+  divider.addEventListener('mousedown', e => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = lp.offsetWidth;
+    const onMove = e2 => {
+      const newW = Math.max(80, Math.min(600, startW + e2.clientX - startX));
+      lp.style.width = newW + 'px';
+      try { localStorage.setItem('gantt-left-w', newW); } catch(e) {}
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 window.onload = () => {
