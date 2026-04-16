@@ -253,6 +253,12 @@ th.sort-desc::after{content:' ▼';font-size:8px}
       <button id="btn-logout" onclick="signOut()">Déconnexion</button>
     </div>
   </div>
+  <!-- OFFLINE BANNER -->
+  <div id="offline-banner" style="display:none;background:#f59e0b;color:#fff;font-size:11px;font-weight:600;padding:4px 12px;display:none;align-items:center;gap:8px;flex-shrink:0">
+    <span>📡 Mode hors-ligne</span>
+    <span id="offline-queue-count" style="font-size:10px;opacity:0.85"></span>
+    <span style="margin-left:auto;font-size:10px;opacity:0.75">Les modifications seront synchronisées à la reconnexion</span>
+  </div>
 
   <!-- CONTENT + ACTION PAD -->
   <div style="display:flex;flex:1;overflow:hidden">
@@ -579,10 +585,18 @@ async function initGoogle() {
       currentToken = token;
       document.getElementById('loading').style.display = 'none';
       document.getElementById('main-app').style.display = 'flex';
-      await loadAll();
+      if (!isOnline && hasLocalData()) {
+        showOfflineFromCache();
+      } else {
+        await loadAll();
+      }
     } else {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('auth-screen').style.display = 'flex';
+      if (!isOnline && hasLocalData()) {
+        showOfflineFromCache();
+      } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+      }
     }
   } else {
     // Web: gapi loaded dynamically above
@@ -666,8 +680,14 @@ const BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 
 async function sheetsGet(range) {
   if (IS_ELECTRON) {
-    const data = await window.electronAPI.sheetsRequest({ method:'GET', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`, token:currentToken });
-    return data.values || [];
+    try {
+      const data = await window.electronAPI.sheetsRequest({ method:'GET', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`, token:currentToken });
+      if (data && data.error) throw new Error('sheets_error');
+      return data.values || [];
+    } catch(e) {
+      if (!isOnline) throw new Error('offline');
+      throw e;
+    }
   } else {
     const r = await gapi.client.sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range });
     return r.result.values || [];
@@ -675,14 +695,24 @@ async function sheetsGet(range) {
 }
 async function sheetsUpdate(range, values) {
   if (IS_ELECTRON) {
-    await window.electronAPI.sheetsRequest({ method:'PUT', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=RAW`, body:{values}, token:currentToken });
+    try {
+      await window.electronAPI.sheetsRequest({ method:'PUT', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=RAW`, body:{values}, token:currentToken });
+    } catch(e) {
+      if (!isOnline) throw new Error('offline');
+      throw e;
+    }
   } else {
     await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId:SPREADSHEET_ID, range, valueInputOption:'RAW', resource:{values} });
   }
 }
 async function sheetsClear(range) {
   if (IS_ELECTRON) {
-    await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:clear`, body:{}, token:currentToken });
+    try {
+      await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:clear`, body:{}, token:currentToken });
+    } catch(e) {
+      if (!isOnline) throw new Error('offline');
+      throw e;
+    }
   } else {
     await gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId:SPREADSHEET_ID, range });
   }
@@ -779,7 +809,12 @@ async function loadAll() {
     showSync('ok', 'Synchronisé');
   } catch(e) {
     console.error(e);
-    showSync('err', 'Erreur sync');
+    // If offline and we have cached data, fall back gracefully
+    if ((!isOnline || (e && e.message === 'offline')) && hasLocalData()) {
+      showOfflineFromCache();
+    } else {
+      showSync('err', 'Erreur sync');
+    }
   }
 }
 
@@ -3530,19 +3565,257 @@ function renderPlanGantt(body, label) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── OFFLINE SYSTEM ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const LS_PROJECTS = 'clata_offline_projects';
+const LS_TASKS    = 'clata_offline_tasks';   // stored inside projects
+const LS_BUSDEV   = 'clata_offline_busdev';
+const LS_CLIENTS  = 'clata_offline_clients';
+const LS_ACTIONS  = 'clata_offline_actions';
+const LS_QUEUE    = 'clata_offline_queue';   // pending save operations
+
+let isOnline = navigator.onLine;
+let offlineQueue = []; // [{type:'projects'|'tasks'|'busdev'|'clients'|'actions', ts}]
+
+// ── Persist all data to localStorage ──────────────────────────────────────────
+function persistLocal() {
+  try {
+    localStorage.setItem(LS_PROJECTS, JSON.stringify(projects));
+    localStorage.setItem(LS_BUSDEV,   JSON.stringify(busdevItems));
+    localStorage.setItem(LS_CLIENTS,  JSON.stringify(clientsData));
+    localStorage.setItem(LS_ACTIONS,  JSON.stringify(apData));
+  } catch(e) { console.warn('persistLocal error', e); }
+}
+
+// ── Load from localStorage (offline startup) ──────────────────────────────────
+function loadFromLocal() {
+  try {
+    const p = localStorage.getItem(LS_PROJECTS);
+    const b = localStorage.getItem(LS_BUSDEV);
+    const c = localStorage.getItem(LS_CLIENTS);
+    const a = localStorage.getItem(LS_ACTIONS);
+    if (p) projects    = JSON.parse(p);
+    if (b) busdevItems = JSON.parse(b);
+    if (c) clientsData = JSON.parse(c);
+    if (a) { apData    = JSON.parse(a); apNextId = Math.max(1, ...apData.flatMap(g=>[g.id,...g.items.map(i=>i.id)]).filter(Number.isFinite)) + 1; }
+    // Rebuild tid/bdid/clid
+    if (projects.length)    tid  = Math.max(1, ...projects.flatMap(p=>p.tasks.map(t=>t.id)).filter(Number.isFinite)) + 1;
+    if (busdevItems.length) bdid = Math.max(1, ...busdevItems.map(b=>b.id).filter(Number.isFinite)) + 1;
+    if (clientsData.length) clid = Math.max(1, ...clientsData.map(c=>c.id).filter(Number.isFinite)) + 1;
+    return true;
+  } catch(e) { console.warn('loadFromLocal error', e); return false; }
+}
+
+function hasLocalData() {
+  return !!localStorage.getItem(LS_PROJECTS);
+}
+
+// ── Queue management ───────────────────────────────────────────────────────────
+function queueSave(type) {
+  // Deduplicate — only keep latest entry per type
+  offlineQueue = offlineQueue.filter(q => q.type !== type);
+  offlineQueue.push({ type, ts: Date.now() });
+  try { localStorage.setItem(LS_QUEUE, JSON.stringify(offlineQueue)); } catch(e) {}
+  updateOfflineBanner();
+}
+
+function loadQueue() {
+  try {
+    const q = localStorage.getItem(LS_QUEUE);
+    offlineQueue = q ? JSON.parse(q) : [];
+  } catch(e) { offlineQueue = []; }
+}
+
+function clearQueue() {
+  offlineQueue = [];
+  try { localStorage.removeItem(LS_QUEUE); } catch(e) {}
+  updateOfflineBanner();
+}
+
+// ── Offline banner ─────────────────────────────────────────────────────────────
+function updateOfflineBanner() {
+  const banner = document.getElementById('offline-banner');
+  if (!banner) return;
+  if (!isOnline) {
+    banner.style.display = 'flex';
+    const cnt = document.getElementById('offline-queue-count');
+    if (cnt) cnt.textContent = offlineQueue.length > 0 ? `(${offlineQueue.length} modif. en attente)` : '';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+// ── Online/offline detection ───────────────────────────────────────────────────
+window.addEventListener('online',  () => { isOnline = true;  updateOfflineBanner(); onReconnect(); });
+window.addEventListener('offline', () => { isOnline = false; updateOfflineBanner(); showSync('err', 'Hors-ligne'); });
+
+async function onReconnect() {
+  if (!currentToken) return; // not logged in
+  showSync('loading', 'Reconnexion...');
+  loadQueue();
+  if (offlineQueue.length === 0) {
+    showSync('ok', 'En ligne ✓');
+    return;
+  }
+  // Flush all pending saves
+  showSync('loading', `Sync ${offlineQueue.length} modif...`);
+  const types = [...new Set(offlineQueue.map(q=>q.type))];
+  let ok = true;
+  for (const type of types) {
+    try {
+      if (type === 'projects') await saveProjects(projects);
+      if (type === 'tasks')    await saveTasks();
+      if (type === 'busdev')   await saveBusDev();
+      if (type === 'clients')  await saveClients();
+      if (type === 'actions')  await saveActions();
+    } catch(e) { ok = false; console.error('sync error', type, e); }
+  }
+  if (ok) {
+    clearQueue();
+    showSync('ok', 'Synchronisé ✓');
+  } else {
+    showSync('err', 'Erreur sync partielle');
+  }
+}
+
+// ── Patch save functions to work offline ──────────────────────────────────────
+// We wrap each save function: if offline → persist locally + queue; if online → do normally + persist locally
+
+const _origSaveProjects = saveProjects;
+saveProjects = async function(data) {
+  persistLocal();
+  if (!isOnline) { queueSave('projects'); showSync('err', 'Hors-ligne — sauvegardé localement'); return; }
+  await _origSaveProjects(data);
+  persistLocal();
+};
+
+const _origSaveTasks = saveTasks;
+saveTasks = async function() {
+  persistLocal();
+  if (!isOnline) { queueSave('tasks'); showSync('err', 'Hors-ligne — sauvegardé localement'); return; }
+  await _origSaveTasks();
+  persistLocal();
+};
+
+const _origSaveBusDev = saveBusDev;
+saveBusDev = async function() {
+  persistLocal();
+  if (!isOnline) { queueSave('busdev'); showSync('err', 'Hors-ligne — sauvegardé localement'); return; }
+  await _origSaveBusDev();
+  persistLocal();
+};
+
+const _origSaveClients = saveClients;
+saveClients = async function() {
+  persistLocal();
+  if (!isOnline) { queueSave('clients'); showSync('err', 'Hors-ligne — sauvegardé localement'); return; }
+  await _origSaveClients();
+  persistLocal();
+};
+
+const _origSaveActions = saveActions;
+saveActions = async function() {
+  persistLocal();
+  if (!isOnline) { queueSave('actions'); showSync('err', 'Hors-ligne — sauvegardé localement'); return; }
+  await _origSaveActions();
+  persistLocal();
+};
+
+// ── After successful loadAll from Sheets: persist locally ─────────────────────
+// (called at end of original loadAll via try block — we override showSync to hook)
+const _origLoadAll = loadAll;
+loadAll = async function() {
+  await _origLoadAll();
+  persistLocal();
+  loadQueue();
+};
+
+// ─── ELECTRON: Réseau polling ──────────────────────────────────────────────────
+// navigator.onLine n'est pas fiable sous Electron — on ping les Sheets toutes les 15s
+let _electronPollTimer = null;
+function startElectronNetworkPoll() {
+  if (!IS_ELECTRON) return;
+  if (_electronPollTimer) return;
+  _electronPollTimer = setInterval(async () => {
+    try {
+      // Lightweight ping: fetch just spreadsheet metadata
+      const resp = await fetch(`${BASE}/${SPREADSHEET_ID}?fields=spreadsheetId`, {
+        headers: { Authorization: `Bearer ${currentToken}` },
+        signal: AbortSignal.timeout(5000)
+      });
+      if (resp.ok && !isOnline) {
+        // Was offline, now back online
+        isOnline = true;
+        updateOfflineBanner();
+        onReconnect();
+      } else if (resp.ok) {
+        isOnline = true;
+      }
+    } catch(e) {
+      if (isOnline) {
+        isOnline = false;
+        updateOfflineBanner();
+        showSync('err', 'Hors-ligne');
+      }
+    }
+  }, 15000);
+}
+
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
 window.onload = () => {
-  // Safety timeout — if gapi never loads, show auth screen anyway
+  isOnline = navigator.onLine;
+  loadQueue();
+
+  // Safety timeout — if gapi never loads, show auth screen or cached data
   setTimeout(() => {
     const loading = document.getElementById('loading');
     if (loading && loading.style.display !== 'none') {
       loading.style.display = 'none';
-      document.getElementById('auth-screen').style.display = 'flex';
+      if (!isOnline && hasLocalData()) {
+        showOfflineFromCache();
+      } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+      }
     }
   }, 5000);
+
+  // Web: if offline + cached data → show immediately without waiting for Google
+  if (!IS_ELECTRON && !isOnline && hasLocalData()) {
+    setTimeout(showOfflineFromCache, 800);
+  }
+
   initGoogle();
-  if (!IS_ELECTRON && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+  // Web: register service worker
+  if (!IS_ELECTRON && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  // Electron: start network polling after short delay (token may not be set yet)
+  if (IS_ELECTRON) {
+    setTimeout(startElectronNetworkPoll, 3000);
+  }
 };
+
+function showOfflineFromCache() {
+  const loading = document.getElementById('loading');
+  if (loading) loading.style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+  loadFromLocal();
+  initFilters();
+  render();
+  renderActionPad();
+  renderRightPanel();
+  populateGlobalOwner();
+  initApResize();
+  updateOfflineBanner();
+  showSync('err', 'Hors-ligne — données locales');
+  // Start Electron polling to detect reconnection
+  if (IS_ELECTRON) startElectronNetworkPoll();
+}
 </script>
 </body>
 </html>
