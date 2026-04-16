@@ -200,6 +200,7 @@ th.sort-desc::after{content:' ▼';font-size:8px}
   /* Hide sidebar action pad on mobile - use Actions tab instead */
   #action-pad{display:none}
   #ap-resize{display:none}
+  #right-panel{display:none !important}
   /* Actions tab full width on mobile */
   #view-actions .ap-item-text{font-size:13px}
   #view-actions .ap-group-name{font-size:13px}
@@ -207,6 +208,10 @@ th.sort-desc::after{content:' ▼';font-size:8px}
   #view-actions .ap-item.level2{padding-left:40px}
   #view-actions .ap-owner{width:64px;font-size:11px}
   #view-actions .ap-group-header{padding:6px 10px}
+  /* Pipeline table scrolls horizontally on mobile */
+  #table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Global filters bar wraps on mobile */
+  #toolbar{flex-wrap:wrap}
 }
 
 /* LOADING */
@@ -262,22 +267,22 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button id="tab-planning" onclick="switchTab('planning')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">📅 Planning</button>
   </div>
 
-  <!-- ACTIONS TAB (mobile full view) -->
+  <!-- ACTIONS TAB — shows same table as right panel, full screen on mobile -->
   <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#fff">
-    <div style="padding:6px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
-      <span style="font-size:13px;font-weight:600;color:#1a1a1a">⚡ Actions</span>
-      <button id="ap-filter-btn2" onclick="toggleApFilter()" title="Filtrer par pipeline" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">🔍</button>
-      <button id="ap-today-btn" onclick="toggleApToday()" title="Aujourd'hui seulement" style="font-size:11px;padding:3px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#aaa">📅 Today</button>
-      <select id="ap-owner-filter" onchange="renderActionPad()" style="font-size:11px;padding:3px 6px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#555">
-        <option value="">Tous owners</option>
-      </select>
-      <div style="margin-left:auto;display:flex;gap:6px">
-        <button onclick="apAddGroup()" style="font-size:11px;padding:3px 8px;border:1px solid #1a1a1a;border-radius:5px;background:#1a1a1a;color:#fff;cursor:pointer">+ Groupe</button>
-        <button onclick="apCollapseAll()" style="font-size:13px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#777">−</button>
-        <button onclick="apExpandAll()" style="font-size:13px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#777">+</button>
-      </div>
+    <!-- Header + quick add -->
+    <div style="padding:5px 8px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;background:#fafafa">
+      <span style="font-size:11px;font-weight:700;color:#1a1a1a">⚡ Actions</span>
+      <input id="rp-quick-text-mob" placeholder="+ Nouvelle action..." style="flex:1;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:4px;outline:none" onkeydown="if(event.key==='Enter'){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value=''}">
+      <button onclick="document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value=''" style="font-size:11px;padding:4px 8px;border:1px solid #1a1a1a;border-radius:4px;background:#1a1a1a;color:#fff;cursor:pointer">+</button>
     </div>
-    <div id="action-tab-body" style="flex:1;overflow-y:auto;padding:6px 0"></div>
+    <!-- Reuse the same rp-table rendered by renderRightPanel -->
+    <div style="flex:1;overflow:auto">
+      <table id="rp-table-mob" style="width:100%;border-collapse:collapse;font-size:11px;table-layout:auto">
+        <thead id="rp-thead-mob"></thead>
+        <tbody id="rp-tbody-mob"></tbody>
+      </table>
+    </div>
+    <div id="rp-footer-mob" style="border-top:1px solid #e5e5e5;flex-shrink:0"></div>
   </div>
 
   <!-- PIPELINE TAB -->
@@ -958,6 +963,7 @@ function rpSaveEdit(gid, iid) {
   closeModal();
   scheduleApSave();
   renderRightPanel();
+  renderMobileActions();
   render();
 }
 
@@ -2369,7 +2375,7 @@ function switchTab(tab) {
   });
   if (tab === 'busdev')   renderBD();
   if (tab === 'clients')  renderClients();
-  if (tab === 'actions')  renderActionPad();
+  if (tab === 'actions')  { renderActionPad(); renderMobileActions(); }
   if (tab === 'planning') renderPlanning();
 }
 
@@ -2383,6 +2389,108 @@ const BD_CAT_COLORS = {
   'Autre':             {bg:'#f5f5f5',color:'#888'},
 };
 const HOR_COLORS = {'Court terme':'#ef4444','Moyen terme':'#f59e0b','Long terme':'#6366f1'};
+
+function renderMobileActions() {
+  const thead = document.getElementById('rp-thead-mob');
+  const tbody = document.getElementById('rp-tbody-mob');
+  const footer = document.getElementById('rp-footer-mob');
+  if (!tbody) return;
+
+  const todayStr = fmtDate(new Date());
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
+  const weekEndStr = fmtDate(weekEnd);
+
+  if (thead) thead.innerHTML = `
+    <tr style="background:#f5f5f5;position:sticky;top:0;z-index:5">
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#888;width:30px;text-align:center">!</th>
+      <th style="padding:6px 6px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:left">Account · Action</th>
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:50px">Owner</th>
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:50px">Due</th>
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:26px">✓</th>
+    </tr>`;
+
+  let rows = [];
+  apData.forEach(g => {
+    const p = projects.find(px=>px.mailid===g.mailid) || projects.find(px=>('__pid_'+px.id)===g.mailid);
+    g.items.filter(it=>!it.archived&&!it.done).forEach(it=>{
+      rows.push({it, gid:g.id, account:g.name, solution:p?.solution||'', phase:p?.phase||''});
+    });
+  });
+
+  rows.sort((a,b)=>{
+    if (a.it.todayFlag&&!b.it.todayFlag) return -1;
+    if (!a.it.todayFlag&&b.it.todayFlag) return 1;
+    if (a.it.priority&&!b.it.priority) return -1;
+    if (!a.it.priority&&b.it.priority) return 1;
+    return (a.it.date||'9').localeCompare(b.it.date||'9');
+  });
+
+  tbody.innerHTML='';
+
+  const todayRows = rows.filter(r=>r.it.todayFlag);
+  const restRows  = rows.filter(r=>!r.it.todayFlag);
+
+  function makeRow(r, urgent) {
+    const it=r.it, isPast=it.date&&it.date<todayStr;
+    const ownerColor=it.owner===ME?'#e65100':it.owner?'#2e7d32':'#aaa';
+    const dateDisp=it.date?new Date(it.date+'T00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
+    const tr=document.createElement('tr');
+    tr.style.cssText=`background:${urgent?'#fff5f5':it.priority?'#fffbeb':'#fff'};border-bottom:1px solid #f0f0f0`;
+    tr.innerHTML=`
+      <td style="padding:4px 2px;text-align:center;vertical-align:middle">
+        <span style="cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;font-size:13px;display:block" onclick="rpToggleTodayFlag(${r.gid},${it.id})">!</span>
+        <span style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:12px;display:block" onclick="rpTogglePriority(${r.gid},${it.id})">★</span>
+      </td>
+      <td style="padding:5px 6px;vertical-align:middle">
+        <div style="font-size:10px;color:#6366f1;font-weight:600">${r.account}${r.solution?' · <span style="color:#888;font-weight:400">'+r.solution+'</span>':''}</div>
+        <div style="font-size:12px;color:${isPast?'#ef4444':'#222'};font-weight:${it.todayFlag?'600':'400'};margin-top:1px">${it.level===2?'└ ':''}${it.text}</div>
+      </td>
+      <td style="padding:4px;text-align:center;vertical-align:middle">
+        <span style="font-size:10px;font-weight:600;padding:2px 4px;border-radius:3px;background:${it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5'};color:${ownerColor}">${it.owner||'+'}</span>
+      </td>
+      <td style="padding:4px;text-align:center;vertical-align:middle;font-size:10px;font-weight:600;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};white-space:nowrap">${dateDisp}</td>
+      <td style="padding:4px 2px;text-align:center;vertical-align:middle">
+        <span style="cursor:pointer;color:#bbb;font-size:14px" onclick="rpToggleDone(${r.gid},${it.id})">○</span>
+        <span style="cursor:pointer;color:#ccc;font-size:11px;display:block" onclick="rpEditRow(${r.gid},${it.id})">✎</span>
+      </td>`;
+    return tr;
+  }
+
+  if (todayRows.length) {
+    const hdr=document.createElement('tr');
+    hdr.innerHTML=`<td colspan="5" style="padding:4px 8px;background:#fee2e2;font-size:9px;font-weight:700;color:#ef4444;letter-spacing:0.5px">🔴 URGENT — AUJOURD'HUI (${todayRows.length})</td>`;
+    tbody.appendChild(hdr);
+    todayRows.forEach(r=>tbody.appendChild(makeRow(r,true)));
+    const sep=document.createElement('tr');
+    sep.innerHTML='<td colspan="5" style="padding:0;background:#e5e5e5;height:2px"></td>';
+    tbody.appendChild(sep);
+  }
+
+  restRows.forEach(r=>tbody.appendChild(makeRow(r,false)));
+
+  if (!rows.length) {
+    tbody.innerHTML='<tr><td colspan="5" style="padding:30px;text-align:center;color:#bbb;font-size:12px">Aucune action active.<br>Utilise + pour en ajouter.</td></tr>';
+  }
+
+  // Archives footer
+  if (footer) {
+    const allArchived=apData.flatMap(g=>g.items.filter(x=>x.archived).map(it=>({...it,gid:g.id,groupName:g.name})));
+    footer.innerHTML='';
+    if (allArchived.length) {
+      const h=document.createElement('div');
+      h.style.cssText='padding:8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:11px;color:#888;border-top:2px solid #e5e5e5';
+      h.innerHTML=`<span>${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
+      h.onclick=()=>{footer._show=!footer._show;renderMobileActions();};
+      footer.appendChild(h);
+      if (footer._show) allArchived.forEach(it=>{
+        const row=document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #f8f8f8;opacity:0.6;font-size:11px';
+        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb">${it.text}</span><span style="color:#aaa">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:3px;cursor:pointer;color:#555;padding:2px 6px">↩</button>`;
+        footer.appendChild(row);
+      });
+    }
+  }
+}
 
 function renderBD() {
   const q    = document.getElementById('bd-search').value.toLowerCase();
