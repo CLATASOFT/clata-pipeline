@@ -543,9 +543,8 @@ th.sort-desc::after{content:' ▼';font-size:8px}
 <div id="modal-area"></div>
 <div id="import-modal"></div>
 
-<!-- Google API - only needed in web mode, not Electron -->
+<!-- Google API scripts -->
 <script>
-// In Electron, skip loading Google API scripts entirely
 if (!(window.electronAPI && window.electronAPI.isElectron)) {
   const s1 = document.createElement('script');
   s1.src = 'https://apis.google.com/js/api.js';
@@ -582,7 +581,7 @@ async function initGoogle() {
       document.getElementById('auth-screen').style.display = 'flex';
     }
   } else {
-    // Web: gapi loaded dynamically above
+    // Web: init gapi + GSI
     window._gapiReady = async () => {
       try {
         gapi.load('client', async () => {
@@ -614,7 +613,6 @@ async function initGoogle() {
         document.getElementById('auth-screen').style.display = 'flex';
       }
     };
-    // If scripts already loaded (cached), trigger immediately
     if (typeof gapi !== 'undefined' && typeof google !== 'undefined') window._gapiReady();
   }
 }
@@ -670,6 +668,7 @@ async function sheetsGet(range) {
     return r.result.values || [];
   }
 }
+
 async function sheetsUpdate(range, values) {
   if (IS_ELECTRON) {
     await window.electronAPI.sheetsRequest({ method:'PUT', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=RAW`, body:{values}, token:currentToken });
@@ -677,6 +676,7 @@ async function sheetsUpdate(range, values) {
     await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId:SPREADSHEET_ID, range, valueInputOption:'RAW', resource:{values} });
   }
 }
+
 async function sheetsClear(range) {
   if (IS_ELECTRON) {
     await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:clear`, body:{}, token:currentToken });
@@ -684,6 +684,7 @@ async function sheetsClear(range) {
     await gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId:SPREADSHEET_ID, range });
   }
 }
+
 async function ensureSheets() {
   let names;
   if (IS_ELECTRON) {
