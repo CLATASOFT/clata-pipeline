@@ -267,42 +267,22 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button id="tab-planning" onclick="switchTab('planning')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">📅 Planning</button>
   </div>
 
-  <!-- ACTIONS TAB — 4 objectifs: saisie rapide / vision globale / priorités aujourd'hui / tri -->
-  <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#f8f9fa">
-
-    <!-- 1. SAISIE RAPIDE -->
-    <div style="padding:8px;border-bottom:1px solid #e5e5e5;display:flex;gap:6px;flex-shrink:0;background:#fff">
-      <input id="rp-quick-text-mob" placeholder="⚡ Nouvelle action..." 
-        style="flex:1;font-size:14px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;outline:none;background:#f9f9f9"
-        onkeydown="if(event.key==='Enter'&&this.value.trim()){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value=''}">
-      <button onclick="if(document.getElementById('rp-quick-text-mob').value.trim()){document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value=''}"
-        style="font-size:20px;padding:6px 14px;border:none;border-radius:8px;background:#1a1a1a;color:#fff;cursor:pointer;font-weight:300">+</button>
+  <!-- ACTIONS TAB — shows same table as right panel, full screen on mobile -->
+  <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#fff">
+    <!-- Header + quick add -->
+    <div style="padding:5px 8px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;background:#fafafa">
+      <span style="font-size:11px;font-weight:700;color:#1a1a1a">⚡ Actions</span>
+      <input id="rp-quick-text-mob" placeholder="+ Nouvelle action..." style="flex:1;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:4px;outline:none" onkeydown="if(event.key==='Enter'){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value=''}">
+      <button onclick="document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value=''" style="font-size:11px;padding:4px 8px;border:1px solid #1a1a1a;border-radius:4px;background:#1a1a1a;color:#fff;cursor:pointer">+</button>
     </div>
-
-    <!-- 2. TRI RAPIDE — boutons en ligne -->
-    <div style="padding:6px 8px;border-bottom:1px solid #e5e5e5;display:flex;gap:5px;flex-shrink:0;background:#fff;overflow-x:auto">
-      <button id="mob-sort-btn-flag"    onclick="rpSortMob('flag')"    style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0">⚡ Priorité</button>
-      <button id="mob-sort-btn-today"   onclick="mobFilterToday()"     style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">🔴 Aujourd'hui</button>
-      <button id="mob-sort-btn-owner"   onclick="rpSortMob('owner')"   style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">👤 Owner</button>
-      <button id="mob-sort-btn-account" onclick="rpSortMob('account')" style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">🏢 Client</button>
-      <button id="mob-sort-btn-date"    onclick="rpSortMob('date')"    style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">📅 Date</button>
+    <!-- Reuse the same rp-table rendered by renderRightPanel -->
+    <div style="flex:1;overflow:auto">
+      <table id="rp-table-mob" style="width:100%;border-collapse:collapse;font-size:11px;table-layout:auto">
+        <thead id="rp-thead-mob"></thead>
+        <tbody id="rp-tbody-mob"></tbody>
+      </table>
     </div>
-
-    <!-- FILTRE owner + recherche texte -->
-    <div style="padding:4px 8px;border-bottom:1px solid #e5e5e5;display:flex;gap:5px;flex-shrink:0;background:#fff">
-      <input id="mobf-text" placeholder="🔍 Rechercher..." oninput="renderMobileActions()" 
-        style="flex:1;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;outline:none">
-      <select id="mobf-owner" onchange="renderMobileActions()" 
-        style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;flex-shrink:0">
-        <option value="">Tous owners</option>
-      </select>
-    </div>
-
-    <!-- LISTE des actions -->
-    <div id="mob-actions-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
-
-    <!-- Archives footer -->
-    <div id="rp-footer-mob" style="flex-shrink:0"></div>
+    <div id="rp-footer-mob" style="border-top:1px solid #e5e5e5;flex-shrink:0"></div>
   </div>
 
   <!-- PIPELINE TAB -->
@@ -543,8 +523,9 @@ th.sort-desc::after{content:' ▼';font-size:8px}
 <div id="modal-area"></div>
 <div id="import-modal"></div>
 
-<!-- Google API scripts -->
+<!-- Google API - only needed in web mode, not Electron -->
 <script>
+// In Electron, skip loading Google API scripts entirely
 if (!(window.electronAPI && window.electronAPI.isElectron)) {
   const s1 = document.createElement('script');
   s1.src = 'https://apis.google.com/js/api.js';
@@ -581,7 +562,7 @@ async function initGoogle() {
       document.getElementById('auth-screen').style.display = 'flex';
     }
   } else {
-    // Web: init gapi + GSI
+    // Web: gapi loaded dynamically above
     window._gapiReady = async () => {
       try {
         gapi.load('client', async () => {
@@ -613,6 +594,7 @@ async function initGoogle() {
         document.getElementById('auth-screen').style.display = 'flex';
       }
     };
+    // If scripts already loaded (cached), trigger immediately
     if (typeof gapi !== 'undefined' && typeof google !== 'undefined') window._gapiReady();
   }
 }
@@ -668,7 +650,6 @@ async function sheetsGet(range) {
     return r.result.values || [];
   }
 }
-
 async function sheetsUpdate(range, values) {
   if (IS_ELECTRON) {
     await window.electronAPI.sheetsRequest({ method:'PUT', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=RAW`, body:{values}, token:currentToken });
@@ -676,7 +657,6 @@ async function sheetsUpdate(range, values) {
     await gapi.client.sheets.spreadsheets.values.update({ spreadsheetId:SPREADSHEET_ID, range, valueInputOption:'RAW', resource:{values} });
   }
 }
-
 async function sheetsClear(range) {
   if (IS_ELECTRON) {
     await window.electronAPI.sheetsRequest({ method:'POST', url:`${BASE}/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:clear`, body:{}, token:currentToken });
@@ -684,7 +664,6 @@ async function sheetsClear(range) {
     await gapi.client.sheets.spreadsheets.values.clear({ spreadsheetId:SPREADSHEET_ID, range });
   }
 }
-
 async function ensureSheets() {
   let names;
   if (IS_ELECTRON) {
@@ -761,28 +740,23 @@ function showSync(state, label) {
 // ─── LOAD ─────────────────────────────────────────────────────────────────────
 async function loadAll() {
   showSync('loading', 'Chargement...');
-  const timeout = setTimeout(() => showSync('err', 'Timeout — vérifie ta connexion'), 20000);
   try {
     await ensureSheets();
-    showSync('loading', 'Données...');
-    await Promise.all([
-      loadProjects(),
-      loadTasks(),
-      loadBusDev(),
-      loadClients(),
-      loadActions()
-    ]);
-    clearTimeout(timeout);
+    await loadProjects();
+    await loadTasks();
+    await loadBusDev();
+    await loadClients();
+    await loadActions();
     initFilters();
     render();
-    setTimeout(() => renderRightPanel(), 50);
-    setTimeout(() => populateGlobalOwner(), 100);
-    setTimeout(() => initApResize(), 150);
+    renderActionPad();
+    renderRightPanel();
+    populateGlobalOwner();
+    initApResize();
     showSync('ok', 'Synchronisé');
   } catch(e) {
-    clearTimeout(timeout);
     console.error(e);
-    showSync('err', 'Erreur: ' + (e.message||e));
+    showSync('err', 'Erreur sync');
   }
 }
 
@@ -1687,12 +1661,14 @@ function render() {
   applyColVisibility();
   if (apFilterActive) renderActionPad();
   if (currentTab === 'planning') renderPlanning();
+  // Restore focus if search was active
   if (hadFocus && searchEl) {
     searchEl.focus();
     const len = searchEl.value.length;
     searchEl.setSelectionRange(len, len);
   }
-  if (!document.querySelector('#modal-area .ov') && window.innerWidth > 700 && currentTab === 'pipeline') {
+  // Don't re-render gantt if a modal is open (would steal focus)
+  if (!document.querySelector('#modal-area .ov')) {
     setTimeout(renderGanttInline, 0);
   }
 }
@@ -2414,120 +2390,86 @@ const BD_CAT_COLORS = {
 };
 const HOR_COLORS = {'Court terme':'#ef4444','Moyen terme':'#f59e0b','Long terme':'#6366f1'};
 
-let mobSortCol = 'flag', mobSortDir = 1;
-let mobTodayFilter = false;
-
-function mobFilterToday() {
-  mobTodayFilter = !mobTodayFilter;
-  const btn = document.getElementById('mob-sort-btn-today');
-  if (btn) { btn.style.background = mobTodayFilter?'#ef4444':'#fff'; btn.style.color = mobTodayFilter?'#fff':'#555'; btn.style.borderColor = mobTodayFilter?'#ef4444':'#ddd'; }
-  renderMobileActions();
-}
-
-function rpSortMob(col) {
-  if (mobSortCol === col) mobSortDir *= -1;
-  else { mobSortCol = col; mobSortDir = 1; }
-  // Update sort buttons
-  const btns = {flag:'mob-sort-btn-flag',owner:'mob-sort-btn-owner',account:'mob-sort-btn-account',date:'mob-sort-btn-date'};
-  Object.entries(btns).forEach(([c,id]) => {
-    const btn = document.getElementById(id); if(!btn) return;
-    btn.style.background = c===col?'#1a1a1a':'#fff';
-    btn.style.color = c===col?'#fff':'#555';
-    btn.style.borderColor = c===col?'#1a1a1a':'#ddd';
-  });
-  renderMobileActions();
-}
-
 function renderMobileActions() {
-  const list = document.getElementById('mob-actions-list');
+  const thead = document.getElementById('rp-thead-mob');
+  const tbody = document.getElementById('rp-tbody-mob');
   const footer = document.getElementById('rp-footer-mob');
-  if (!list) return;
+  if (!tbody) return;
 
   const todayStr = fmtDate(new Date());
   const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
   const weekEndStr = fmtDate(weekEnd);
 
-  // Populate owner dropdown
-  const allOwners = [...new Set(apData.flatMap(g=>g.items.map(i=>i.owner).filter(Boolean)))].sort();
-  const ownSel = document.getElementById('mobf-owner');
-  if (ownSel) { const v=ownSel.value; ownSel.innerHTML='<option value="">Tous owners</option>'+allOwners.map(o=>`<option value="${o}"${o===v?' selected':''} >${o}</option>`).join(''); }
+  if (thead) thead.innerHTML = `
+    <tr style="background:#f5f5f5;position:sticky;top:0;z-index:5">
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#888;width:30px;text-align:center">!</th>
+      <th style="padding:6px 6px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:left">Account · Action</th>
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:50px">Owner</th>
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:50px">Due</th>
+      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:26px">✓</th>
+    </tr>`;
 
-  const fText  = (document.getElementById('mobf-text')?.value||'').toLowerCase();
-  const fOwner = document.getElementById('mobf-owner')?.value||'';
-
-  // Flat rows
   let rows = [];
   apData.forEach(g => {
-    const p = projects.find(px=>px.mailid===g.mailid)||projects.find(px=>('__pid_'+px.id)===g.mailid);
+    const p = projects.find(px=>px.mailid===g.mailid) || projects.find(px=>('__pid_'+px.id)===g.mailid);
     g.items.filter(it=>!it.archived&&!it.done).forEach(it=>{
-      if (fText  && !(g.name+' '+it.text).toLowerCase().includes(fText)) return;
-      if (fOwner && it.owner!==fOwner) return;
-      if (mobTodayFilter && it.date!==todayStr) return;
       rows.push({it, gid:g.id, account:g.name, solution:p?.solution||'', phase:p?.phase||''});
     });
   });
 
-  // Sort
   rows.sort((a,b)=>{
     if (a.it.todayFlag&&!b.it.todayFlag) return -1;
     if (!a.it.todayFlag&&b.it.todayFlag) return 1;
-    let v=0;
-    if (mobSortCol==='flag')    v=(b.it.priority?1:0)-(a.it.priority?1:0);
-    if (mobSortCol==='account') v=a.account.localeCompare(b.account);
-    if (mobSortCol==='action')  v=a.it.text.localeCompare(b.it.text);
-    if (mobSortCol==='owner')   v=(a.it.owner||'').localeCompare(b.it.owner||'');
-    if (mobSortCol==='date')    v=(a.it.date||'9').localeCompare(b.it.date||'9');
-    return v*mobSortDir;
+    if (a.it.priority&&!b.it.priority) return -1;
+    if (!a.it.priority&&b.it.priority) return 1;
+    return (a.it.date||'9').localeCompare(b.it.date||'9');
   });
 
-  list.innerHTML = '';
+  tbody.innerHTML='';
 
-  // Urgent today banner
-  const urgentRows = rows.filter(r=>r.it.todayFlag);
-  const normalRows = rows.filter(r=>!r.it.todayFlag);
+  const todayRows = rows.filter(r=>r.it.todayFlag);
+  const restRows  = rows.filter(r=>!r.it.todayFlag);
 
-  function makeCard(r) {
-    const it=r.it, isPast=it.date&&it.date<todayStr&&!it.done;
+  function makeRow(r, urgent) {
+    const it=r.it, isPast=it.date&&it.date<todayStr;
     const ownerColor=it.owner===ME?'#e65100':it.owner?'#2e7d32':'#aaa';
-    const ownerBg=it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5';
     const dateDisp=it.date?new Date(it.date+'T00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
-    const card = document.createElement('div');
-    card.style.cssText=`display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #f0f0f0;background:${it.priority?'#fffbeb':'#fff'};${it.todayFlag?'border-left:3px solid #ef4444':''}`;
-    card.innerHTML=`
-      <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">
-        <span style="font-size:14px;cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;line-height:1;text-align:center" onclick="rpToggleTodayFlag(${r.gid},${it.id})" title="Urgent">!</span>
-        <span style="font-size:13px;cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};line-height:1;text-align:center" onclick="rpTogglePriority(${r.gid},${it.id})" title="Priorité">★</span>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:10px;color:#6366f1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.account}${r.solution?' · <span style="color:#aaa;font-weight:400">'+r.solution+'</span>":''}</div>
-        <div style="font-size:13px;color:${isPast?'#ef4444':'#1a1a1a'};font-weight:${it.todayFlag?'700':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${it.level===2?'└ ':''} ${it.text}</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
-        <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:${ownerBg};color:${ownerColor};white-space:nowrap">${it.owner||'+'}</span>
-        <span style="font-size:10px;font-weight:600;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};white-space:nowrap">${dateDisp||'—'}</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
-        <span style="cursor:pointer;font-size:18px;color:#bbb;line-height:1" onclick="rpToggleDone(${r.gid},${it.id})" title="Terminé">○</span>
-        <span style="cursor:pointer;font-size:14px;color:#ccc;line-height:1;text-align:center" onclick="rpEditRow(${r.gid},${it.id})" title="Modifier">✎</span>
-      </div>`;
-    return card;
+    const tr=document.createElement('tr');
+    tr.style.cssText=`background:${urgent?'#fff5f5':it.priority?'#fffbeb':'#fff'};border-bottom:1px solid #f0f0f0`;
+    tr.innerHTML=`
+      <td style="padding:4px 2px;text-align:center;vertical-align:middle">
+        <span style="cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;font-size:13px;display:block" onclick="rpToggleTodayFlag(${r.gid},${it.id})">!</span>
+        <span style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:12px;display:block" onclick="rpTogglePriority(${r.gid},${it.id})">★</span>
+      </td>
+      <td style="padding:5px 6px;vertical-align:middle">
+        <div style="font-size:10px;color:#6366f1;font-weight:600">${r.account}${r.solution?' · <span style="color:#888;font-weight:400">'+r.solution+'</span>':''}</div>
+        <div style="font-size:12px;color:${isPast?'#ef4444':'#222'};font-weight:${it.todayFlag?'600':'400'};margin-top:1px">${it.level===2?'└ ':''}${it.text}</div>
+      </td>
+      <td style="padding:4px;text-align:center;vertical-align:middle">
+        <span style="font-size:10px;font-weight:600;padding:2px 4px;border-radius:3px;background:${it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5'};color:${ownerColor}">${it.owner||'+'}</span>
+      </td>
+      <td style="padding:4px;text-align:center;vertical-align:middle;font-size:10px;font-weight:600;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};white-space:nowrap">${dateDisp}</td>
+      <td style="padding:4px 2px;text-align:center;vertical-align:middle">
+        <span style="cursor:pointer;color:#bbb;font-size:14px" onclick="rpToggleDone(${r.gid},${it.id})">○</span>
+        <span style="cursor:pointer;color:#ccc;font-size:11px;display:block" onclick="rpEditRow(${r.gid},${it.id})">✎</span>
+      </td>`;
+    return tr;
   }
 
-  if (urgentRows.length) {
-    const banner = document.createElement('div');
-    banner.style.cssText='padding:6px 12px;background:#fee2e2;font-size:11px;font-weight:700;color:#ef4444;letter-spacing:0.5px';
-    banner.textContent=`🔴 URGENT AUJOURD'HUI (${urgentRows.length})`;
-    list.appendChild(banner);
-    urgentRows.forEach(r=>list.appendChild(makeCard(r)));
-    const sep=document.createElement('div');
-    sep.style.cssText='height:3px;background:#e5e5e5';
-    list.appendChild(sep);
+  if (todayRows.length) {
+    const hdr=document.createElement('tr');
+    hdr.innerHTML=`<td colspan="5" style="padding:4px 8px;background:#fee2e2;font-size:9px;font-weight:700;color:#ef4444;letter-spacing:0.5px">🔴 URGENT — AUJOURD'HUI (${todayRows.length})</td>`;
+    tbody.appendChild(hdr);
+    todayRows.forEach(r=>tbody.appendChild(makeRow(r,true)));
+    const sep=document.createElement('tr');
+    sep.innerHTML='<td colspan="5" style="padding:0;background:#e5e5e5;height:2px"></td>';
+    tbody.appendChild(sep);
   }
 
-  normalRows.forEach(r=>list.appendChild(makeCard(r)));
+  restRows.forEach(r=>tbody.appendChild(makeRow(r,false)));
 
   if (!rows.length) {
-    list.innerHTML='<div style="padding:40px;text-align:center;color:#bbb;font-size:13px">Aucune action.<br><br>Tape une action ci-dessus et appuie sur <b>+</b></div>';
+    tbody.innerHTML='<tr><td colspan="5" style="padding:30px;text-align:center;color:#bbb;font-size:12px">Aucune action active.<br>Utilise + pour en ajouter.</td></tr>';
   }
 
   // Archives footer
@@ -2536,14 +2478,14 @@ function renderMobileActions() {
     footer.innerHTML='';
     if (allArchived.length) {
       const h=document.createElement('div');
-      h.style.cssText='padding:10px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:12px;color:#888;border-top:2px solid #e5e5e5';
-      h.innerHTML=`<span style="font-size:14px">${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
+      h.style.cssText='padding:8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:11px;color:#888;border-top:2px solid #e5e5e5';
+      h.innerHTML=`<span>${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
       h.onclick=()=>{footer._show=!footer._show;renderMobileActions();};
       footer.appendChild(h);
       if (footer._show) allArchived.forEach(it=>{
         const row=document.createElement('div');
-        row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f0;opacity:0.6;font-size:12px';
-        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.text}</span><span style="color:#aaa;font-size:10px;flex-shrink:0">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:12px;background:none;border:1px solid #ddd;border-radius:6px;cursor:pointer;color:#555;padding:3px 8px;flex-shrink:0">↩</button>`;
+        row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #f8f8f8;opacity:0.6;font-size:11px';
+        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb">${it.text}</span><span style="color:#aaa">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:3px;cursor:pointer;color:#555;padding:2px 6px">↩</button>`;
         footer.appendChild(row);
       });
     }
