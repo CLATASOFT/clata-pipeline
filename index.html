@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="theme-color" content="#1a1a1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -291,11 +291,11 @@ th.sort-desc::after{content:' ▼';font-size:8px}
       <table id="rp-table-mob" style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:680px">
         <colgroup>
           <col style="width:28px"><!-- ! flag -->
+          <col><!-- action (flex) — FIRST -->
           <col style="width:120px"><!-- account -->
           <col style="width:68px"><!-- solution -->
           <col style="width:62px"><!-- phase -->
           <col style="width:72px"><!-- mailid -->
-          <col><!-- action (flex) -->
           <col style="width:58px"><!-- owner -->
           <col style="width:62px"><!-- due -->
           <col style="width:26px"><!-- done -->
@@ -2463,6 +2463,10 @@ function renderMobileActions() {
   if (thead) thead.innerHTML = `
     <tr style="position:sticky;top:0;z-index:10">
       <th style="${thStyleC};border-right:1px solid #e0e0e0;width:28px" title="Urgent/Priorité">!</th>
+      <th style="${thStyle}" onclick="mobActSortBy('action')">
+        <div>Action${sortIcon('action')}</div>
+        <input id="maf-action" value="${fAction}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
+      </th>
       <th style="${thStyle}" onclick="mobActSortBy('account')">
         <div>Account${sortIcon('account')}</div>
         <input id="maf-account" value="${fAccount}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
@@ -2482,10 +2486,6 @@ function renderMobileActions() {
       <th style="${thStyle}">
         <div>Mail ID</div>
         <input id="maf-mailid" value="${fMailid}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
-      </th>
-      <th style="${thStyle}" onclick="mobActSortBy('action')">
-        <div>Action${sortIcon('action')}</div>
-        <input id="maf-action" value="${fAction}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
       </th>
       <th style="${thStyle}" onclick="mobActSortBy('owner')">
         <div>Owner${sortIcon('owner')}</div>
@@ -2594,6 +2594,9 @@ function renderMobileActions() {
           <span title="Priorité" style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:10px;line-height:1" onclick="rpTogglePriority(${r.gid},${it.id});renderMobileActions()">★</span>
         </div>
       </td>
+      <td style="${tdBase};color:${it.done?'#aaa':isPast?'#ef4444':'#1a1a1a'};text-decoration:${it.done?'line-through':'none'};font-size:10px" title="${it.text}">
+        ${it.level===2?'<span style="color:#bbb;margin-right:2px">└</span>':''}${it.text}
+      </td>
       <td style="${tdBase};font-size:10px;font-weight:600;color:#1a1a1a" title="${r.account}">${r.account}</td>
       <td style="${tdBase};text-align:center">
         ${r.solution ? `<span style="display:inline-block;font-size:8px;padding:1px 4px;border-radius:3px;background:#ede9ff;color:#4338ca;max-width:60px;overflow:hidden;text-overflow:ellipsis">${r.solution}</span>` : '<span style="color:#ddd;font-size:9px">—</span>'}
@@ -2602,9 +2605,6 @@ function renderMobileActions() {
         ${r.phase ? `<span style="display:inline-block;font-size:8px;padding:1px 4px;border-radius:10px;background:#f0f0f0;border:1px solid #ddd;color:#555;max-width:58px;overflow:hidden;text-overflow:ellipsis">${r.phase}</span>` : '<span style="color:#ddd;font-size:9px">—</span>'}
       </td>
       <td style="${tdBase};font-size:9px;color:#2563eb;cursor:pointer;text-decoration:underline dotted" onclick="copyMailId('${r.mailid||''}')" title="${r.mailid||''}">${r.mailid||'—'}</td>
-      <td style="${tdBase};color:${it.done?'#aaa':isPast?'#ef4444':'#1a1a1a'};text-decoration:${it.done?'line-through':'none'};font-size:10px" title="${it.text}">
-        ${it.level===2?'<span style="color:#bbb;margin-right:2px">└</span>':''}${it.text}
-      </td>
       <td style="${tdBase};text-align:center">
         <span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${ownerBg};color:${ownerColor};font-weight:600;white-space:nowrap">${it.owner||'+'}</span>
       </td>
