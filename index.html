@@ -769,10 +769,10 @@ async function loadAll() {
     await loadActions();
     initFilters();
     render();
-    renderActionPad();
-    renderRightPanel();
-    populateGlobalOwner();
-    initApResize();
+    // Stagger heavy renders to avoid UI freeze
+    setTimeout(() => { renderRightPanel(); populateGlobalOwner(); }, 100);
+    setTimeout(() => { renderActionPad(); }, 200);
+    setTimeout(() => { initApResize(); }, 300);
     showSync('ok', 'Synchronisé');
   } catch(e) {
     console.error(e);
@@ -1681,14 +1681,12 @@ function render() {
   applyColVisibility();
   if (apFilterActive) renderActionPad();
   if (currentTab === 'planning') renderPlanning();
-  // Restore focus if search was active
   if (hadFocus && searchEl) {
     searchEl.focus();
     const len = searchEl.value.length;
     searchEl.setSelectionRange(len, len);
   }
-  // Don't re-render gantt if a modal is open (would steal focus)
-  if (!document.querySelector('#modal-area .ov')) {
+  if (!document.querySelector('#modal-area .ov') && window.innerWidth > 700 && currentTab === 'pipeline') {
     setTimeout(renderGanttInline, 0);
   }
 }
