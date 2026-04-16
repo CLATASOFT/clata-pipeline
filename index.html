@@ -267,56 +267,42 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button id="tab-planning" onclick="switchTab('planning')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">📅 Planning</button>
   </div>
 
-  <!-- ACTIONS TAB — Excel table, mobile optimized -->
-  <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#fff">
-    <!-- Header + quick add -->
-    <div style="padding:4px 6px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:5px;flex-shrink:0;background:#fafafa">
-      <span style="font-size:11px;font-weight:700;color:#1a1a1a">⚡</span>
-      <input id="rp-quick-text-mob" placeholder="Nouvelle action..." style="flex:1;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:4px;outline:none" onkeydown="if(event.key==='Enter'){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value=''}">
-      <button onclick="document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value=''" style="font-size:11px;padding:4px 8px;border:1px solid #1a1a1a;border-radius:4px;background:#1a1a1a;color:#fff;cursor:pointer;flex-shrink:0">+</button>
+  <!-- ACTIONS TAB — 4 objectifs: saisie rapide / vision globale / priorités aujourd'hui / tri -->
+  <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#f8f9fa">
+
+    <!-- 1. SAISIE RAPIDE -->
+    <div style="padding:8px;border-bottom:1px solid #e5e5e5;display:flex;gap:6px;flex-shrink:0;background:#fff">
+      <input id="rp-quick-text-mob" placeholder="⚡ Nouvelle action..." 
+        style="flex:1;font-size:14px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;outline:none;background:#f9f9f9"
+        onkeydown="if(event.key==='Enter'&&this.value.trim()){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value=''}">
+      <button onclick="if(document.getElementById('rp-quick-text-mob').value.trim()){document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value=''}"
+        style="font-size:20px;padding:6px 14px;border:none;border-radius:8px;background:#1a1a1a;color:#fff;cursor:pointer;font-weight:300">+</button>
     </div>
-    <!-- Table -->
-    <div style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch">
-      <table style="width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed">
-        <colgroup>
-          <col style="width:22px"><!-- !★ -->
-          <col><!-- Account+Action (flex) -->
-          <col style="width:38px"><!-- Owner -->
-          <col style="width:44px"><!-- Due -->
-          <col style="width:22px"><!-- ✓✎ -->
-        </colgroup>
-        <thead>
-          <tr style="background:#f5f5f5;position:sticky;top:0;z-index:5">
-            <th style="padding:2px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:center;font-size:9px;color:#888" onclick="rpSortMob('flag')" title="Priorité">
-              !★<span id="mob-sort-flag" style="color:#6366f1;font-size:8px"></span>
-            </th>
-            <th style="padding:2px 4px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:left;color:#555">
-              <div style="display:flex;gap:3px;align-items:center">
-                <span style="cursor:pointer;font-size:9px" onclick="rpSortMob('account')">Account<span id="mob-sort-account" style="color:#6366f1;font-size:8px"></span></span>
-                <span style="cursor:pointer;font-size:9px;color:#aaa" onclick="rpSortMob('action')">/Action<span id="mob-sort-action" style="color:#6366f1;font-size:8px"></span></span>
-              </div>
-              <input id="mobf-text" placeholder="Filtre..." oninput="renderMobileActions()" style="width:100%;font-size:9px;padding:1px 3px;border:1px solid #e0e0e0;border-radius:3px;margin-top:1px;box-sizing:border-box">
-            </th>
-            <th style="padding:2px 2px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:center;color:#555">
-              <div style="cursor:pointer;font-size:9px" onclick="rpSortMob('owner')">Own<span id="mob-sort-owner" style="color:#6366f1;font-size:8px"></span></div>
-              <select id="mobf-owner" onchange="renderMobileActions()" style="width:100%;font-size:8px;padding:1px;border:1px solid #e0e0e0;border-radius:3px;margin-top:1px"><option value="">All</option></select>
-            </th>
-            <th style="padding:2px 2px;border-bottom:2px solid #e0e0e0;border-right:1px solid #e0e0e0;text-align:center;color:#555">
-              <div style="cursor:pointer;font-size:9px" onclick="rpSortMob('date')">Due<span id="mob-sort-date" style="color:#6366f1;font-size:8px"></span></div>
-              <select id="mobf-date" onchange="renderMobileActions()" style="width:100%;font-size:8px;padding:1px;border:1px solid #e0e0e0;border-radius:3px;margin-top:1px">
-                <option value="">All</option>
-                <option value="today">Today</option>
-                <option value="week">Week</option>
-                <option value="overdue">Late</option>
-              </select>
-            </th>
-            <th style="padding:2px;border-bottom:2px solid #e0e0e0;text-align:center;font-size:9px;color:#555">✓</th>
-          </tr>
-        </thead>
-        <tbody id="rp-tbody-mob"></tbody>
-      </table>
+
+    <!-- 2. TRI RAPIDE — boutons en ligne -->
+    <div style="padding:6px 8px;border-bottom:1px solid #e5e5e5;display:flex;gap:5px;flex-shrink:0;background:#fff;overflow-x:auto">
+      <button id="mob-sort-btn-flag"    onclick="rpSortMob('flag')"    style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0">⚡ Priorité</button>
+      <button id="mob-sort-btn-today"   onclick="mobFilterToday()"     style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">🔴 Aujourd'hui</button>
+      <button id="mob-sort-btn-owner"   onclick="rpSortMob('owner')"   style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">👤 Owner</button>
+      <button id="mob-sort-btn-account" onclick="rpSortMob('account')" style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">🏢 Client</button>
+      <button id="mob-sort-btn-date"    onclick="rpSortMob('date')"    style="font-size:11px;padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0">📅 Date</button>
     </div>
-    <div id="rp-footer-mob" style="border-top:1px solid #e5e5e5;flex-shrink:0"></div>
+
+    <!-- FILTRE owner + recherche texte -->
+    <div style="padding:4px 8px;border-bottom:1px solid #e5e5e5;display:flex;gap:5px;flex-shrink:0;background:#fff">
+      <input id="mobf-text" placeholder="🔍 Rechercher..." oninput="renderMobileActions()" 
+        style="flex:1;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;outline:none">
+      <select id="mobf-owner" onchange="renderMobileActions()" 
+        style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;flex-shrink:0">
+        <option value="">Tous owners</option>
+      </select>
+    </div>
+
+    <!-- LISTE des actions -->
+    <div id="mob-actions-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
+
+    <!-- Archives footer -->
+    <div id="rp-footer-mob" style="flex-shrink:0"></div>
   </div>
 
   <!-- PIPELINE TAB -->
@@ -2425,21 +2411,33 @@ const BD_CAT_COLORS = {
 const HOR_COLORS = {'Court terme':'#ef4444','Moyen terme':'#f59e0b','Long terme':'#6366f1'};
 
 let mobSortCol = 'flag', mobSortDir = 1;
+let mobTodayFilter = false;
+
+function mobFilterToday() {
+  mobTodayFilter = !mobTodayFilter;
+  const btn = document.getElementById('mob-sort-btn-today');
+  if (btn) { btn.style.background = mobTodayFilter?'#ef4444':'#fff'; btn.style.color = mobTodayFilter?'#fff':'#555'; btn.style.borderColor = mobTodayFilter?'#ef4444':'#ddd'; }
+  renderMobileActions();
+}
 
 function rpSortMob(col) {
   if (mobSortCol === col) mobSortDir *= -1;
   else { mobSortCol = col; mobSortDir = 1; }
-  ['flag','account','action','owner','date'].forEach(c => {
-    const el = document.getElementById('mob-sort-'+c);
-    if (el) el.textContent = c===col?(mobSortDir===1?' ↑':' ↓'):'';
+  // Update sort buttons
+  const btns = {flag:'mob-sort-btn-flag',owner:'mob-sort-btn-owner',account:'mob-sort-btn-account',date:'mob-sort-btn-date'};
+  Object.entries(btns).forEach(([c,id]) => {
+    const btn = document.getElementById(id); if(!btn) return;
+    btn.style.background = c===col?'#1a1a1a':'#fff';
+    btn.style.color = c===col?'#fff':'#555';
+    btn.style.borderColor = c===col?'#1a1a1a':'#ddd';
   });
   renderMobileActions();
 }
 
 function renderMobileActions() {
-  const tbody = document.getElementById('rp-tbody-mob');
+  const list = document.getElementById('mob-actions-list');
   const footer = document.getElementById('rp-footer-mob');
-  if (!tbody) return;
+  if (!list) return;
 
   const todayStr = fmtDate(new Date());
   const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
@@ -2448,22 +2446,19 @@ function renderMobileActions() {
   // Populate owner dropdown
   const allOwners = [...new Set(apData.flatMap(g=>g.items.map(i=>i.owner).filter(Boolean)))].sort();
   const ownSel = document.getElementById('mobf-owner');
-  if (ownSel) { const v=ownSel.value; ownSel.innerHTML='<option value="">All</option>'+allOwners.map(o=>`<option value="${o}"${o===v?' selected':''}>${o}</option>`).join(''); }
+  if (ownSel) { const v=ownSel.value; ownSel.innerHTML='<option value="">Tous owners</option>'+allOwners.map(o=>`<option value="${o}"${o===v?' selected':''} >${o}</option>`).join(''); }
 
   const fText  = (document.getElementById('mobf-text')?.value||'').toLowerCase();
   const fOwner = document.getElementById('mobf-owner')?.value||'';
-  const fDate  = document.getElementById('mobf-date')?.value||'';
 
-  // Build flat rows
+  // Flat rows
   let rows = [];
   apData.forEach(g => {
     const p = projects.find(px=>px.mailid===g.mailid)||projects.find(px=>('__pid_'+px.id)===g.mailid);
     g.items.filter(it=>!it.archived&&!it.done).forEach(it=>{
-      if (fText  && !(g.name+it.text).toLowerCase().includes(fText)) return;
+      if (fText  && !(g.name+' '+it.text).toLowerCase().includes(fText)) return;
       if (fOwner && it.owner!==fOwner) return;
-      if (fDate==='today'   && it.date!==todayStr) return;
-      if (fDate==='week'    && !(it.date>=todayStr&&it.date<=weekEndStr)) return;
-      if (fDate==='overdue' && !(it.date&&it.date<todayStr)) return;
+      if (mobTodayFilter && it.date!==todayStr) return;
       rows.push({it, gid:g.id, account:g.name, solution:p?.solution||'', phase:p?.phase||''});
     });
   });
@@ -2481,50 +2476,54 @@ function renderMobileActions() {
     return v*mobSortDir;
   });
 
-  tbody.innerHTML='';
+  list.innerHTML = '';
 
-  const todayItems=rows.filter(r=>r.it.todayFlag);
-  const restItems =rows.filter(r=>!r.it.todayFlag);
+  // Urgent today banner
+  const urgentRows = rows.filter(r=>r.it.todayFlag);
+  const normalRows = rows.filter(r=>!r.it.todayFlag);
 
-  function makeRow(r, urgent) {
-    const it=r.it, isPast=it.date&&it.date<todayStr;
+  function makeCard(r) {
+    const it=r.it, isPast=it.date&&it.date<todayStr&&!it.done;
     const ownerColor=it.owner===ME?'#e65100':it.owner?'#2e7d32':'#aaa';
+    const ownerBg=it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5';
     const dateDisp=it.date?new Date(it.date+'T00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
-    const tr=document.createElement('tr');
-    tr.style.cssText=`background:${urgent?'#fff5f5':it.priority?'#fffbeb':'#fff'};border-bottom:1px solid #f0f0f0`;
-    tr.innerHTML=`
-      <td style="padding:2px;text-align:center;vertical-align:middle;white-space:nowrap">
-        <span style="cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;font-size:12px" onclick="rpToggleTodayFlag(${r.gid},${it.id})">!</span><br>
-        <span style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:11px" onclick="rpTogglePriority(${r.gid},${it.id})">★</span>
-      </td>
-      <td style="padding:3px 4px;vertical-align:middle;overflow:hidden">
-        <div style="font-size:8px;color:#6366f1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.account}${r.solution?' · '+r.solution:''}</div>
-        <div style="font-size:10px;color:${isPast?'#ef4444':'#222'};font-weight:${it.todayFlag?'600':'400'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.level===2?'└ ':''}${it.text}</div>
-      </td>
-      <td style="padding:2px;text-align:center;vertical-align:middle">
-        <span style="font-size:9px;font-weight:600;padding:1px 3px;border-radius:3px;background:${it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5'};color:${ownerColor};white-space:nowrap">${it.owner||'+'}</span>
-      </td>
-      <td style="padding:2px;text-align:center;vertical-align:middle;font-size:9px;font-weight:600;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};white-space:nowrap">${dateDisp}</td>
-      <td style="padding:2px;text-align:center;vertical-align:middle">
-        <span style="cursor:pointer;color:#bbb;font-size:13px;display:block;line-height:1.4" onclick="rpToggleDone(${r.gid},${it.id})">○</span>
-        <span style="cursor:pointer;color:#ccc;font-size:10px;display:block;line-height:1.4" onclick="rpEditRow(${r.gid},${it.id})">✎</span>
-      </td>`;
-    return tr;
+    const card = document.createElement('div');
+    card.style.cssText=`display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #f0f0f0;background:${it.priority?'#fffbeb':'#fff'};${it.todayFlag?'border-left:3px solid #ef4444':''}`;
+    card.innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0">
+        <span style="font-size:14px;cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;line-height:1;text-align:center" onclick="rpToggleTodayFlag(${r.gid},${it.id})" title="Urgent">!</span>
+        <span style="font-size:13px;cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};line-height:1;text-align:center" onclick="rpTogglePriority(${r.gid},${it.id})" title="Priorité">★</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:#6366f1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.account}${r.solution?' · <span style="color:#aaa;font-weight:400">'+r.solution+'</span>":''}</div>
+        <div style="font-size:13px;color:${isPast?'#ef4444':'#1a1a1a'};font-weight:${it.todayFlag?'700':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${it.level===2?'└ ':''} ${it.text}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0">
+        <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;background:${ownerBg};color:${ownerColor};white-space:nowrap">${it.owner||'+'}</span>
+        <span style="font-size:10px;font-weight:600;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};white-space:nowrap">${dateDisp||'—'}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <span style="cursor:pointer;font-size:18px;color:#bbb;line-height:1" onclick="rpToggleDone(${r.gid},${it.id})" title="Terminé">○</span>
+        <span style="cursor:pointer;font-size:14px;color:#ccc;line-height:1;text-align:center" onclick="rpEditRow(${r.gid},${it.id})" title="Modifier">✎</span>
+      </div>`;
+    return card;
   }
 
-  if (todayItems.length) {
-    const hdr=document.createElement('tr');
-    hdr.innerHTML=`<td colspan="5" style="padding:3px 6px;background:#fee2e2;font-size:8px;font-weight:700;color:#ef4444;letter-spacing:0.5px">🔴 URGENT (${todayItems.length})</td>`;
-    tbody.appendChild(hdr);
-    todayItems.forEach(r=>tbody.appendChild(makeRow(r,true)));
-    const sep=document.createElement('tr');
-    sep.innerHTML='<td colspan="5" style="padding:0;background:#e5e5e5;height:2px"></td>';
-    tbody.appendChild(sep);
+  if (urgentRows.length) {
+    const banner = document.createElement('div');
+    banner.style.cssText='padding:6px 12px;background:#fee2e2;font-size:11px;font-weight:700;color:#ef4444;letter-spacing:0.5px';
+    banner.textContent=`🔴 URGENT AUJOURD'HUI (${urgentRows.length})`;
+    list.appendChild(banner);
+    urgentRows.forEach(r=>list.appendChild(makeCard(r)));
+    const sep=document.createElement('div');
+    sep.style.cssText='height:3px;background:#e5e5e5';
+    list.appendChild(sep);
   }
-  restItems.forEach(r=>tbody.appendChild(makeRow(r,false)));
+
+  normalRows.forEach(r=>list.appendChild(makeCard(r)));
 
   if (!rows.length) {
-    tbody.innerHTML='<tr><td colspan="5" style="padding:30px;text-align:center;color:#bbb;font-size:12px">Aucune action</td></tr>';
+    list.innerHTML='<div style="padding:40px;text-align:center;color:#bbb;font-size:13px">Aucune action.<br><br>Tape une action ci-dessus et appuie sur <b>+</b></div>';
   }
 
   // Archives footer
@@ -2533,14 +2532,14 @@ function renderMobileActions() {
     footer.innerHTML='';
     if (allArchived.length) {
       const h=document.createElement('div');
-      h.style.cssText='padding:6px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:10px;color:#888;border-top:2px solid #e5e5e5';
-      h.innerHTML=`<span>${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
+      h.style.cssText='padding:10px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:12px;color:#888;border-top:2px solid #e5e5e5';
+      h.innerHTML=`<span style="font-size:14px">${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
       h.onclick=()=>{footer._show=!footer._show;renderMobileActions();};
       footer.appendChild(h);
       if (footer._show) allArchived.forEach(it=>{
         const row=document.createElement('div');
-        row.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid #f8f8f8;font-size:10px;opacity:0.7';
-        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.text}</span><span style="color:#aaa;font-size:9px">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:10px;background:none;border:1px solid #ddd;border-radius:3px;cursor:pointer;color:#555;padding:2px 6px;flex-shrink:0">↩</button>`;
+        row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f0;opacity:0.6;font-size:12px';
+        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.text}</span><span style="color:#aaa;font-size:10px;flex-shrink:0">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:12px;background:none;border:1px solid #ddd;border-radius:6px;cursor:pointer;color:#555;padding:3px 8px;flex-shrink:0">↩</button>`;
         footer.appendChild(row);
       });
     }
