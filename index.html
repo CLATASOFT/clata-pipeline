@@ -267,21 +267,44 @@ th.sort-desc::after{content:' ▼';font-size:8px}
     <button id="tab-planning" onclick="switchTab('planning')" style="font-size:12px;padding:7px 16px;border:none;border-bottom:2px solid transparent;background:#fff;color:#aaa;cursor:pointer;font-weight:400">📅 Planning</button>
   </div>
 
-  <!-- ACTIONS TAB — shows same table as right panel, full screen on mobile -->
+  <!-- ACTIONS TAB — Excel-style full-screen table -->
   <div id="view-actions" style="display:none;flex-direction:column;flex:1;overflow:hidden;background:#fff">
-    <!-- Header + quick add -->
-    <div style="padding:5px 8px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;background:#fafafa">
-      <span style="font-size:11px;font-weight:700;color:#1a1a1a">⚡ Actions</span>
-      <input id="rp-quick-text-mob" placeholder="+ Nouvelle action..." style="flex:1;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:4px;outline:none" onkeydown="if(event.key==='Enter'){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value=''}">
-      <button onclick="document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value=''" style="font-size:11px;padding:4px 8px;border:1px solid #1a1a1a;border-radius:4px;background:#1a1a1a;color:#fff;cursor:pointer">+</button>
+    <!-- Toolbar -->
+    <div style="padding:5px 10px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:6px;flex-shrink:0;background:#fafafa;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:700;color:#1a1a1a;white-space:nowrap">⚡ Actions</span>
+      <div class="sep"></div>
+      <input id="rp-quick-text-mob" placeholder="+ Nouvelle action (Account · texte)..." style="flex:1;min-width:160px;font-size:11px;padding:4px 7px;border:1px solid #ddd;border-radius:4px;outline:none;background:#fff" onkeydown="if(event.key==='Enter'){document.getElementById('rp-quick-text').value=this.value;rpQuickAdd();this.value='';renderMobileActions();}">
+      <button onclick="document.getElementById('rp-quick-text').value=document.getElementById('rp-quick-text-mob').value;rpQuickAdd();document.getElementById('rp-quick-text-mob').value='';renderMobileActions();" style="font-size:11px;padding:4px 10px;border:1px solid #1a1a1a;border-radius:4px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap">+ Ajouter</button>
+      <div class="sep"></div>
+      <label style="font-size:10px;color:#888;white-space:nowrap">Afficher:</label>
+      <select id="mob-act-show" onchange="renderMobileActions()" style="font-size:11px;padding:3px 5px;border:1px solid #ddd;border-radius:4px;background:#fff;color:#222">
+        <option value="active">Actives</option>
+        <option value="all">Toutes</option>
+        <option value="done">Faites</option>
+      </select>
+      <div id="mob-act-count" style="font-size:10px;color:#888;white-space:nowrap"></div>
     </div>
-    <!-- Reuse the same rp-table rendered by renderRightPanel -->
+    <!-- Stats bar -->
+    <div id="mob-act-stats" style="background:#fff;border-bottom:1px solid #f0f0f0;padding:3px 10px;display:flex;gap:5px;flex-shrink:0;overflow-x:auto"></div>
+    <!-- Excel table -->
     <div style="flex:1;overflow:auto">
-      <table id="rp-table-mob" style="width:100%;border-collapse:collapse;font-size:11px;table-layout:auto">
+      <table id="rp-table-mob" style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;min-width:680px">
+        <colgroup>
+          <col style="width:28px"><!-- ! flag -->
+          <col style="width:120px"><!-- account -->
+          <col style="width:68px"><!-- solution -->
+          <col style="width:62px"><!-- phase -->
+          <col style="width:72px"><!-- mailid -->
+          <col><!-- action (flex) -->
+          <col style="width:58px"><!-- owner -->
+          <col style="width:62px"><!-- due -->
+          <col style="width:26px"><!-- done -->
+        </colgroup>
         <thead id="rp-thead-mob"></thead>
         <tbody id="rp-tbody-mob"></tbody>
       </table>
     </div>
+    <!-- Archives footer -->
     <div id="rp-footer-mob" style="border-top:1px solid #e5e5e5;flex-shrink:0"></div>
   </div>
 
@@ -2390,106 +2413,247 @@ const BD_CAT_COLORS = {
 };
 const HOR_COLORS = {'Court terme':'#ef4444','Moyen terme':'#f59e0b','Long terme':'#6366f1'};
 
+// ─── MOB ACTIONS STATE ────────────────────────────────────────────────────────
+let mobActSort = { col: 'date', dir: 'asc' };
+let mobActFilters = { account:'', solution:'', phase:'', mailid:'', action:'', owner:'', date:'' };
+
 function renderMobileActions() {
   const thead = document.getElementById('rp-thead-mob');
-  const tbody = document.getElementById('rp-tbody-mob');
+  const tbody  = document.getElementById('rp-tbody-mob');
   const footer = document.getElementById('rp-footer-mob');
+  const stats  = document.getElementById('mob-act-stats');
   if (!tbody) return;
 
   const todayStr = fmtDate(new Date());
-  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
+  const weekEnd  = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
   const weekEndStr = fmtDate(weekEnd);
 
-  if (thead) thead.innerHTML = `
-    <tr style="background:#f5f5f5;position:sticky;top:0;z-index:5">
-      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#888;width:30px;text-align:center">!</th>
-      <th style="padding:6px 6px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:left">Account · Action</th>
-      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:50px">Owner</th>
-      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:50px">Due</th>
-      <th style="padding:6px 4px;border-bottom:2px solid #e0e0e0;font-size:10px;color:#555;text-align:center;width:26px">✓</th>
-    </tr>`;
+  const showMode = (document.getElementById('mob-act-show')||{value:'active'}).value;
 
-  let rows = [];
+  // Build flat rows list
+  let allRows = [];
   apData.forEach(g => {
     const p = projects.find(px=>px.mailid===g.mailid) || projects.find(px=>('__pid_'+px.id)===g.mailid);
-    g.items.filter(it=>!it.archived&&!it.done).forEach(it=>{
-      rows.push({it, gid:g.id, account:g.name, solution:p?.solution||'', phase:p?.phase||''});
+    g.items.forEach(it => {
+      allRows.push({ it, gid:g.id, account:g.name, solution:p?.solution||'', phase:p?.phase||'', mailid:g.mailid||'' });
     });
   });
 
-  rows.sort((a,b)=>{
-    if (a.it.todayFlag&&!b.it.todayFlag) return -1;
-    if (!a.it.todayFlag&&b.it.todayFlag) return 1;
-    if (a.it.priority&&!b.it.priority) return -1;
-    if (!a.it.priority&&b.it.priority) return 1;
-    return (a.it.date||'9').localeCompare(b.it.date||'9');
+  // Collect unique values for filter dropdowns
+  const uniqueSols   = [...new Set(allRows.map(r=>r.solution).filter(Boolean))].sort();
+  const uniquePhases = [...new Set(allRows.map(r=>r.phase).filter(Boolean))].sort();
+  const uniqueOwners = [...new Set(allRows.map(r=>r.it.owner).filter(Boolean))].sort();
+
+  // Read current filter values from DOM (if thead already exists)
+  const fAccount  = (document.getElementById('maf-account')||{value:''}).value.toLowerCase();
+  const fSolution = (document.getElementById('maf-solution')||{value:''}).value;
+  const fPhase    = (document.getElementById('maf-phase')||{value:''}).value;
+  const fMailid   = (document.getElementById('maf-mailid')||{value:''}).value.toLowerCase();
+  const fAction   = (document.getElementById('maf-action')||{value:''}).value.toLowerCase();
+  const fOwner    = (document.getElementById('maf-owner')||{value:''}).value;
+  const fDate     = (document.getElementById('maf-date')||{value:''}).value;
+
+  // ── Render thead with sticky headers + inline column filters ──
+  const sortIcon = col => mobActSort.col===col ? (mobActSort.dir==='asc'?' ▲':' ▼') : '';
+  const thStyle  = `padding:3px 4px;border-bottom:2px solid #d0d0d0;border-right:1px solid #e0e0e0;text-align:left;color:#444;font-size:9px;font-weight:700;white-space:nowrap;background:#f0f2f5;cursor:pointer;vertical-align:top`;
+  const thStyleC = `padding:3px 2px;border-bottom:2px solid #d0d0d0;text-align:center;color:#444;font-size:9px;font-weight:700;background:#f0f2f5;vertical-align:top`;
+  const inpStyle = `width:100%;font-size:9px;padding:1px 3px;border:1px solid #d5d5d5;border-radius:3px;margin-top:2px;box-sizing:border-box;background:#fff;color:#222`;
+  const selStyle = `width:100%;font-size:9px;padding:1px 2px;border:1px solid #d5d5d5;border-radius:3px;margin-top:2px;background:#fff;color:#222`;
+
+  if (thead) thead.innerHTML = `
+    <tr style="position:sticky;top:0;z-index:10">
+      <th style="${thStyleC};border-right:1px solid #e0e0e0;width:28px" title="Urgent/Priorité">!</th>
+      <th style="${thStyle}" onclick="mobActSortBy('account')">
+        <div>Account${sortIcon('account')}</div>
+        <input id="maf-account" value="${fAccount}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
+      </th>
+      <th style="${thStyle}" onclick="mobActSortBy('solution')">
+        <div>Sol${sortIcon('solution')}</div>
+        <select id="maf-solution" onchange="renderMobileActions()" style="${selStyle}">
+          <option value="">Tous</option>${uniqueSols.map(s=>`<option value="${s}"${s===fSolution?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </th>
+      <th style="${thStyle}">
+        <div>Phase</div>
+        <select id="maf-phase" onchange="renderMobileActions()" style="${selStyle}">
+          <option value="">Tous</option>${uniquePhases.map(s=>`<option value="${s}"${s===fPhase?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </th>
+      <th style="${thStyle}">
+        <div>Mail ID</div>
+        <input id="maf-mailid" value="${fMailid}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
+      </th>
+      <th style="${thStyle}" onclick="mobActSortBy('action')">
+        <div>Action${sortIcon('action')}</div>
+        <input id="maf-action" value="${fAction}" placeholder="Filtre..." oninput="renderMobileActions()" style="${inpStyle}">
+      </th>
+      <th style="${thStyle}" onclick="mobActSortBy('owner')">
+        <div>Owner${sortIcon('owner')}</div>
+        <select id="maf-owner" onchange="renderMobileActions()" style="${selStyle}">
+          <option value="">Tous</option>${uniqueOwners.map(o=>`<option value="${o}"${o===fOwner?' selected':''}>${o}</option>`).join('')}
+        </select>
+      </th>
+      <th style="${thStyle}" onclick="mobActSortBy('date')">
+        <div>Due${sortIcon('date')}</div>
+        <select id="maf-date" onchange="renderMobileActions()" style="${selStyle}">
+          <option value="">Toutes</option>
+          <option value="today"${fDate==='today'?' selected':''}>Auj.</option>
+          <option value="week"${fDate==='week'?' selected':''}>Semaine</option>
+          <option value="overdue"${fDate==='overdue'?' selected':''}>Retard</option>
+        </select>
+      </th>
+      <th style="${thStyleC};width:26px">✓</th>
+    </tr>`;
+
+  // ── Filter rows ──
+  let rows = allRows.filter(r => {
+    const it = r.it;
+    // show mode
+    if (showMode === 'active' && (it.done || it.archived)) return false;
+    if (showMode === 'done'   && !it.done) return false;
+    // column filters
+    if (fAccount  && !r.account.toLowerCase().includes(fAccount))      return false;
+    if (fSolution && r.solution !== fSolution)                          return false;
+    if (fPhase    && r.phase !== fPhase)                                return false;
+    if (fMailid   && !(r.mailid||'').toLowerCase().includes(fMailid))   return false;
+    if (fAction   && !it.text.toLowerCase().includes(fAction))          return false;
+    if (fOwner    && it.owner !== fOwner)                               return false;
+    if (fDate === 'today'   && it.date !== todayStr)                    return false;
+    if (fDate === 'week'    && !(it.date >= todayStr && it.date <= weekEndStr)) return false;
+    if (fDate === 'overdue' && !(it.date && it.date < todayStr && !it.done))   return false;
+    return true;
   });
 
-  tbody.innerHTML='';
+  // ── Sort ──
+  rows.sort((a,b) => {
+    // Always: todayFlag first
+    if (a.it.todayFlag && !b.it.todayFlag) return -1;
+    if (!a.it.todayFlag && b.it.todayFlag)  return 1;
+    let av='', bv='';
+    if (mobActSort.col==='account') { av=a.account; bv=b.account; }
+    else if (mobActSort.col==='solution') { av=a.solution; bv=b.solution; }
+    else if (mobActSort.col==='action')  { av=a.it.text;  bv=b.it.text; }
+    else if (mobActSort.col==='owner')   { av=a.it.owner||''; bv=b.it.owner||''; }
+    else { av=a.it.date||'9'; bv=b.it.date||'9'; }
+    const cmp = av.localeCompare(bv);
+    return mobActSort.dir==='asc' ? cmp : -cmp;
+  });
 
-  const todayRows = rows.filter(r=>r.it.todayFlag);
-  const restRows  = rows.filter(r=>!r.it.todayFlag);
+  // ── Stats ──
+  const totalAll = allRows.filter(r=>!r.it.done&&!r.it.archived).length;
+  const overdue  = allRows.filter(r=>!r.it.done&&!r.it.archived&&r.it.date&&r.it.date<todayStr).length;
+  const todayAct = allRows.filter(r=>!r.it.done&&!r.it.archived&&r.it.date===todayStr).length;
+  const thisWk   = allRows.filter(r=>!r.it.done&&!r.it.archived&&r.it.date>=todayStr&&r.it.date<=weekEndStr).length;
+  if (stats) stats.innerHTML = `
+    <div class="sc"><div class="n">${totalAll}</div><div class="l">Actives</div></div>
+    <div class="sc" style="border-color:${overdue?'#fca5a5':'#ebebeb'}"><div class="n" style="color:${overdue?'#ef4444':'#1a1a1a'}">${overdue}</div><div class="l">En retard</div></div>
+    <div class="sc"><div class="n" style="color:#2563eb">${todayAct}</div><div class="l">Aujourd'hui</div></div>
+    <div class="sc"><div class="n">${thisWk}</div><div class="l">Semaine</div></div>
+    <div class="sc"><div class="n">${rows.length}</div><div class="l">Affichées</div></div>`;
 
-  function makeRow(r, urgent) {
-    const it=r.it, isPast=it.date&&it.date<todayStr;
-    const ownerColor=it.owner===ME?'#e65100':it.owner?'#2e7d32':'#aaa';
-    const dateDisp=it.date?new Date(it.date+'T00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
-    const tr=document.createElement('tr');
-    tr.style.cssText=`background:${urgent?'#fff5f5':it.priority?'#fffbeb':'#fff'};border-bottom:1px solid #f0f0f0`;
-    tr.innerHTML=`
-      <td style="padding:4px 2px;text-align:center;vertical-align:middle">
-        <span style="cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;font-size:13px;display:block" onclick="rpToggleTodayFlag(${r.gid},${it.id})">!</span>
-        <span style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:12px;display:block" onclick="rpTogglePriority(${r.gid},${it.id})">★</span>
+  const countEl = document.getElementById('mob-act-count');
+  if (countEl) countEl.textContent = rows.length ? `${rows.length} action${rows.length>1?'s':''}` : '';
+
+  // ── Build tbody ──
+  tbody.innerHTML = '';
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="padding:40px;text-align:center;color:#bbb;font-size:12px;vertical-align:middle">
+      <div style="font-size:22px;margin-bottom:8px">⚡</div>
+      <div>Aucune action${fAccount||fAction||fOwner||fDate||fSolution||fPhase?' correspondant aux filtres':' active'}.</div>
+      <div style="font-size:10px;margin-top:6px">Utilise le champ ci-dessus pour en ajouter.</div>
+    </td></tr>`;
+    return;
+  }
+
+  // Separate urgent (todayFlag) from rest
+  const urgentRows = rows.filter(r=>r.it.todayFlag);
+  const restRows   = rows.filter(r=>!r.it.todayFlag);
+
+  function makeExcelRow(r, rowIndex) {
+    const it = r.it;
+    const isPast = it.date && it.date < todayStr && !it.done;
+    const isToday = it.date === todayStr;
+    const ownerColor = it.owner===ME ? '#e65100' : it.owner ? '#2e7d32' : '#aaa';
+    const ownerBg    = it.owner===ME ? '#fff3e0' : it.owner ? '#e8f5e9' : '#f5f5f5';
+    const dateDisp   = it.date ? new Date(it.date+'T00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
+    const dateColor  = isPast ? '#ef4444' : isToday ? '#2563eb' : '#555';
+    const rowBg = it.todayFlag ? '#fff5f0' : it.priority ? '#fffbeb' : it.done ? '#fafafa' : rowIndex%2===0 ? '#ffffff' : '#fafafa';
+    const borderLeft = it.todayFlag ? 'border-left:3px solid #ef4444' : it.priority ? 'border-left:3px solid #f59e0b' : 'border-left:3px solid transparent';
+    const tdBase = `padding:3px 4px;border-bottom:1px solid #eeeeee;border-right:1px solid #f0f0f0;vertical-align:middle;overflow:hidden;white-space:nowrap;text-overflow:ellipsis`;
+
+    const tr = document.createElement('tr');
+    tr.style.cssText = `background:${rowBg};${borderLeft}`;
+    tr.onmouseenter = () => tr.style.background = '#eef2ff';
+    tr.onmouseleave = () => tr.style.background = rowBg;
+
+    tr.innerHTML = `
+      <td style="${tdBase};text-align:center;padding:2px 1px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+          <span title="Urgent" style="cursor:pointer;color:${it.todayFlag?'#ef4444':'#ddd'};font-weight:700;font-size:11px;line-height:1" onclick="rpToggleTodayFlag(${r.gid},${it.id});renderMobileActions()">!</span>
+          <span title="Priorité" style="cursor:pointer;color:${it.priority?'#f59e0b':'#ddd'};font-size:10px;line-height:1" onclick="rpTogglePriority(${r.gid},${it.id});renderMobileActions()">★</span>
+        </div>
       </td>
-      <td style="padding:5px 6px;vertical-align:middle">
-        <div style="font-size:10px;color:#6366f1;font-weight:600">${r.account}${r.solution?' · <span style="color:#888;font-weight:400">'+r.solution+'</span>':''}</div>
-        <div style="font-size:12px;color:${isPast?'#ef4444':'#222'};font-weight:${it.todayFlag?'600':'400'};margin-top:1px">${it.level===2?'└ ':''}${it.text}</div>
+      <td style="${tdBase};font-size:10px;font-weight:600;color:#1a1a1a" title="${r.account}">${r.account}</td>
+      <td style="${tdBase};text-align:center">
+        ${r.solution ? `<span style="display:inline-block;font-size:8px;padding:1px 4px;border-radius:3px;background:#ede9ff;color:#4338ca;max-width:60px;overflow:hidden;text-overflow:ellipsis">${r.solution}</span>` : '<span style="color:#ddd;font-size:9px">—</span>'}
       </td>
-      <td style="padding:4px;text-align:center;vertical-align:middle">
-        <span style="font-size:10px;font-weight:600;padding:2px 4px;border-radius:3px;background:${it.owner===ME?'#fff3e0':it.owner?'#e8f5e9':'#f5f5f5'};color:${ownerColor}">${it.owner||'+'}</span>
+      <td style="${tdBase}">
+        ${r.phase ? `<span style="display:inline-block;font-size:8px;padding:1px 4px;border-radius:10px;background:#f0f0f0;border:1px solid #ddd;color:#555;max-width:58px;overflow:hidden;text-overflow:ellipsis">${r.phase}</span>` : '<span style="color:#ddd;font-size:9px">—</span>'}
       </td>
-      <td style="padding:4px;text-align:center;vertical-align:middle;font-size:10px;font-weight:600;color:${isPast?'#ef4444':it.date===todayStr?'#2563eb':'#888'};white-space:nowrap">${dateDisp}</td>
-      <td style="padding:4px 2px;text-align:center;vertical-align:middle">
-        <span style="cursor:pointer;color:#bbb;font-size:14px" onclick="rpToggleDone(${r.gid},${it.id})">○</span>
-        <span style="cursor:pointer;color:#ccc;font-size:11px;display:block" onclick="rpEditRow(${r.gid},${it.id})">✎</span>
+      <td style="${tdBase};font-size:9px;color:#2563eb;cursor:pointer;text-decoration:underline dotted" onclick="copyMailId('${r.mailid||''}')" title="${r.mailid||''}">${r.mailid||'—'}</td>
+      <td style="${tdBase};color:${it.done?'#aaa':isPast?'#ef4444':'#1a1a1a'};text-decoration:${it.done?'line-through':'none'};font-size:10px" title="${it.text}">
+        ${it.level===2?'<span style="color:#bbb;margin-right:2px">└</span>':''}${it.text}
+      </td>
+      <td style="${tdBase};text-align:center">
+        <span style="display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:${ownerBg};color:${ownerColor};font-weight:600;white-space:nowrap">${it.owner||'+'}</span>
+      </td>
+      <td style="${tdBase};text-align:center;font-size:9px;font-weight:600;color:${dateColor};white-space:nowrap">${dateDisp||'—'}</td>
+      <td style="padding:2px 2px;border-bottom:1px solid #eeeeee;text-align:center;vertical-align:middle">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+          <span title="${it.done?'Rouvrir':'Marquer fait'}" style="cursor:pointer;font-size:13px;line-height:1;color:${it.done?'#4ade80':'#ccc'}" onclick="rpToggleDone(${r.gid},${it.id});renderMobileActions()">${it.done?'✓':'○'}</span>
+          <span title="Modifier" style="cursor:pointer;font-size:10px;line-height:1;color:#ccc" onclick="rpEditRow(${r.gid},${it.id})">✎</span>
+        </div>
       </td>`;
     return tr;
   }
 
-  if (todayRows.length) {
-    const hdr=document.createElement('tr');
-    hdr.innerHTML=`<td colspan="5" style="padding:4px 8px;background:#fee2e2;font-size:9px;font-weight:700;color:#ef4444;letter-spacing:0.5px">🔴 URGENT — AUJOURD'HUI (${todayRows.length})</td>`;
+  if (urgentRows.length) {
+    const hdr = document.createElement('tr');
+    hdr.innerHTML = `<td colspan="9" style="padding:4px 10px;background:#fee2e2;font-size:9px;font-weight:700;color:#ef4444;letter-spacing:0.5px;border-bottom:1px solid #fca5a5">🔴 URGENT — AUJOURD'HUI (${urgentRows.length})</td>`;
     tbody.appendChild(hdr);
-    todayRows.forEach(r=>tbody.appendChild(makeRow(r,true)));
-    const sep=document.createElement('tr');
-    sep.innerHTML='<td colspan="5" style="padding:0;background:#e5e5e5;height:2px"></td>';
+    urgentRows.forEach((r,i) => tbody.appendChild(makeExcelRow(r,i)));
+    const sep = document.createElement('tr');
+    sep.innerHTML = '<td colspan="9" style="padding:0;background:#e0e0e0;height:2px"></td>';
     tbody.appendChild(sep);
   }
 
-  restRows.forEach(r=>tbody.appendChild(makeRow(r,false)));
+  restRows.forEach((r,i) => tbody.appendChild(makeExcelRow(r, urgentRows.length+i)));
 
-  if (!rows.length) {
-    tbody.innerHTML='<tr><td colspan="5" style="padding:30px;text-align:center;color:#bbb;font-size:12px">Aucune action active.<br>Utilise + pour en ajouter.</td></tr>';
-  }
-
-  // Archives footer
+  // ── Archives footer ──
   if (footer) {
-    const allArchived=apData.flatMap(g=>g.items.filter(x=>x.archived).map(it=>({...it,gid:g.id,groupName:g.name})));
-    footer.innerHTML='';
+    const allArchived = apData.flatMap(g => g.items.filter(x=>x.archived).map(it=>({...it,gid:g.id,groupName:g.name})));
+    footer.innerHTML = '';
     if (allArchived.length) {
-      const h=document.createElement('div');
-      h.style.cssText='padding:8px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:11px;color:#888;border-top:2px solid #e5e5e5';
-      h.innerHTML=`<span>${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
-      h.onclick=()=>{footer._show=!footer._show;renderMobileActions();};
+      const h = document.createElement('div');
+      h.style.cssText = 'padding:7px 10px;display:flex;align-items:center;gap:6px;cursor:pointer;background:#f5f5f5;font-size:11px;color:#888;border-top:2px solid #e5e5e5';
+      h.innerHTML = `<span>${footer._show?'▾':'▸'}</span><span style="flex:1;font-weight:600">📦 Archives (${allArchived.length})</span>`;
+      h.onclick = () => { footer._show = !footer._show; renderMobileActions(); };
       footer.appendChild(h);
-      if (footer._show) allArchived.forEach(it=>{
-        const row=document.createElement('div');
-        row.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid #f8f8f8;opacity:0.6;font-size:11px';
-        row.innerHTML=`<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb">${it.text}</span><span style="color:#aaa">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:3px;cursor:pointer;color:#555;padding:2px 6px">↩</button>`;
+      if (footer._show) allArchived.forEach(it => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:6px;padding:5px 10px;border-bottom:1px solid #f0f0f0;opacity:0.65;font-size:11px;background:#fafafa';
+        row.innerHTML = `<span style="color:#ccc">📦</span><span style="flex:1;text-decoration:line-through;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.text}</span><span style="color:#aaa;font-size:10px;flex-shrink:0">${it.groupName}</span><button onclick="rpUnarchiveItem(${it.gid},${it.id})" style="font-size:10px;background:none;border:1px solid #ddd;border-radius:3px;cursor:pointer;color:#555;padding:2px 6px;flex-shrink:0">↩</button>`;
         footer.appendChild(row);
       });
     }
   }
+}
+
+function mobActSortBy(col) {
+  if (mobActSort.col === col) { mobActSort.dir = mobActSort.dir==='asc' ? 'desc' : 'asc'; }
+  else { mobActSort.col = col; mobActSort.dir = 'asc'; }
+  renderMobileActions();
 }
 
 function renderBD() {
