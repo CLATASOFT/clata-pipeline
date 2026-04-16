@@ -760,23 +760,28 @@ function showSync(state, label) {
 // ─── LOAD ─────────────────────────────────────────────────────────────────────
 async function loadAll() {
   showSync('loading', 'Chargement...');
+  const timeout = setTimeout(() => showSync('err', 'Timeout — vérifie ta connexion'), 20000);
   try {
     await ensureSheets();
-    await loadProjects();
-    await loadTasks();
-    await loadBusDev();
-    await loadClients();
-    await loadActions();
+    showSync('loading', 'Données...');
+    await Promise.all([
+      loadProjects(),
+      loadTasks(),
+      loadBusDev(),
+      loadClients(),
+      loadActions()
+    ]);
+    clearTimeout(timeout);
     initFilters();
     render();
-    // Stagger heavy renders to avoid UI freeze
-    setTimeout(() => { renderRightPanel(); populateGlobalOwner(); }, 100);
-    setTimeout(() => { renderActionPad(); }, 200);
-    setTimeout(() => { initApResize(); }, 300);
+    setTimeout(() => renderRightPanel(), 50);
+    setTimeout(() => populateGlobalOwner(), 100);
+    setTimeout(() => initApResize(), 150);
     showSync('ok', 'Synchronisé');
   } catch(e) {
+    clearTimeout(timeout);
     console.error(e);
-    showSync('err', 'Erreur sync');
+    showSync('err', 'Erreur: ' + (e.message||e));
   }
 }
 
